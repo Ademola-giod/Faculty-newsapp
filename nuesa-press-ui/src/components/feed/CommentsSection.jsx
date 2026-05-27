@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import  { useEffect, useState, useCallback  } from 'react';
 import axios from 'axios';
 import { MessageCircle, Send } from 'lucide-react';
 
@@ -16,7 +16,7 @@ const CommentsSection = ({
   const [submitting, setSubmitting] = useState(false);
 
   // ─── fetch comments ─────────────────────────────────────────
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     if (!expandedPost?._id) return;
 
     try {
@@ -33,11 +33,12 @@ const CommentsSection = ({
     } finally {
       setLoadingComments(false);
     }
-  };
+  }, [expandedPost]);
 
   // ─── submit comment ─────────────────────────────────────────
-  const submitComment = async () => {
-    if (!commentText.trim()) return;
+  const submitComment = useCallback(
+    async () => {
+      if (!commentText.trim()) return;
 
     try {
       setSubmitting(true);
@@ -64,11 +65,19 @@ const CommentsSection = ({
     } finally {
       setSubmitting(false);
     }
-  };
+  }, [
+    commentText,
+    expandedPost,
+    getAccessTokenSilently
+  ]);
 
   useEffect(() => {
-    fetchComments();
-  }, [expandedPost]);
+  const init = async () => {
+    await fetchComments();
+  };
+
+  init();
+}, [fetchComments]);
 
   return (
     <section className="mt-12 border-t border-slate-200 pt-8">

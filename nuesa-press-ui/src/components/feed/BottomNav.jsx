@@ -14,12 +14,11 @@
 
 // export default BottomNav;
 
-import React from 'react';
 import {
   Home,
   Compass,
   Bookmark,
-  User
+  // User
 } from 'lucide-react';
 
 const BottomNav = ({ activeMenu, setActiveMenu }) => {
@@ -28,7 +27,7 @@ const BottomNav = ({ activeMenu, setActiveMenu }) => {
     { key: 'feed', icon: Home },
     { key: 'explore', icon: Compass },
     { key: 'saved', icon: Bookmark },
-    { key: 'profile', icon: User }
+    // { key: 'profile', icon: User }
   ];
 
   return (
