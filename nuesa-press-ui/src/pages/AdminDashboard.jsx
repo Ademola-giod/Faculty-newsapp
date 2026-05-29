@@ -91,6 +91,8 @@ const AdminDashboard = () => {
       const token = await getAccessTokenSilently({
         authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE }
       });
+        
+
       const res = await axios.post('http://localhost:5000/api/posts', data, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` }
       });
@@ -131,7 +133,7 @@ const AdminDashboard = () => {
       </div>
 
       {/* Sliding Sidebar Navigation Control Drawer */}
-      <aside className={`fixed top-0 left-0 z-[80] h-screen bg-white border-r border-slate-200 transition-transform duration-300 lg:translate-x-0 flex flex-col w-72 
+      <aside className={`fixed top-0 left-0 z-80 h-screen bg-white border-r border-slate-200 transition-transform duration-300 lg:translate-x-0 flex flex-col w-72 
         ${activeTab === 'View Live Feed' ? 'lg:-translate-x-full' : 'lg:translate-x-0'} 
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>

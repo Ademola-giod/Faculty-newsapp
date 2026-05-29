@@ -9,7 +9,7 @@ const ManagePosts = ({ onEdit, onDelete, posts = [] }) => {
   );
 
   return (
-    <div className="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm animate-in fade-in duration-500">
+    <div className="bg-white rounded-4xl border border-slate-200 overflow-hidden shadow-sm animate-in fade-in duration-500">
       <div className="p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
         <h3 className="font-bold text-slate-800">Live Articles</h3>
 

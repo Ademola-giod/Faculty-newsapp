@@ -10,6 +10,11 @@ export const checkJwt = auth({
   issuerBaseURL: `https://${process.env.AUTH0_DOMAIN}/`,
   tokenSigningAlg: 'RS256'
 });
+   console.log("JWT CHECK CONFIG:", {
+    audience: process.env.AUTH0_AUDIENCE,
+    issuerBaseURL: `https://${process.env.AUTH0_DOMAIN}/`,
+    tokenSigningAlg: 'RS256'
+  });
 
 
 // 2. Attach user to request (FIXED VERSION)

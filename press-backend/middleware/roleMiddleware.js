@@ -20,7 +20,7 @@ export const isAdmin = (req, res, next) => {
 
 // 3. UI Students Only
 export const isStudent = (req, res, next) => {
-  if (req.user && req.user.role === 'STUDENT') {
+  if (req.user && req.user?.role === 'STUDENT') {
     next();
   } else {
     res.status(403).json({ message: "Access denied: UI Students only." });

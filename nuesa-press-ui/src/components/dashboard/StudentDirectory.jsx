@@ -1,4 +1,3 @@
-import React from 'react';
 import { Users, Lock, Sparkles } from 'lucide-react';
 
 const StudentDirectory = () => {

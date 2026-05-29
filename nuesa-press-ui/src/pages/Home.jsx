@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth0 } from '@auth0/auth0-react';
 import {
@@ -129,12 +129,22 @@ const Home = () => {
     setLikeCounts((c) => ({ ...c, [postId]: (c[postId] || 0) + (wasLiked ? -1 : 1) }));
 
     try {
-      const token = await getAccessTokenSilently();
+      const token = await getAccessTokenSilently({
+        authorizationParams: { 
+          audience: import.meta.env.VITE_AUTH0_AUDIENCE 
+        }  
+        
+    });
+
+    // console.log("TOKEN:", token);
       await axios.patch(
         `${API_URL}/api/posts/${postId}/like`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
+
+      
     } catch (err) {
       // rollback
       setLikedPosts(prev);
@@ -492,7 +502,7 @@ useEffect(() => {
 
       {/* ── EXPANDED POST (full-screen panel, no modal) ───────────────────── */}
       {expandedPost && (
-        <div className="fixed inset-0 z-[200] bg-slate-100 overflow-y-auto">
+        <div className="fixed inset-0 z-200 bg-slate-100 overflow-y-auto">
 
           {/* TOP BAR */}
           <div className="sticky top-0 z-10 bg-white border-b border-slate-200 shadow-sm">
@@ -546,14 +556,22 @@ useEffect(() => {
             </div>
 
             <div
-              className="prose prose-slate prose-base max-w-none
-                prose-headings:font-black prose-headings:text-slate-900
-                prose-p:text-slate-700 prose-p:leading-relaxed
-                prose-a:text-blue-800 prose-a:font-semibold
-                prose-strong:text-slate-900
-                prose-img:rounded-xl prose-li:text-slate-700"
-              dangerouslySetInnerHTML={{ __html: expandedPost.content }}
-            />
+  className="prose prose-slate prose-base max-w-none
+    break-words overflow-hidden
+    prose-headings:font-black prose-headings:text-slate-900
+    prose-p:text-slate-700 prose-p:leading-relaxed
+    prose-p:break-words
+    prose-a:text-blue-800 prose-a:font-semibold
+    prose-a:break-all
+    prose-strong:text-slate-900
+    prose-img:rounded-xl
+    prose-img:max-w-full
+    prose-img:h-auto
+    prose-pre:overflow-x-auto
+    prose-code:break-words
+    prose-li:text-slate-700"
+  dangerouslySetInnerHTML={{ __html: expandedPost.content }}
+/>
             
 
             {/* BOTTOM ACTIONS */}

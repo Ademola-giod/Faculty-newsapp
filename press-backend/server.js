@@ -12,6 +12,7 @@ import postsRoutes from './routes/postsRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import auditRoutes from './routes/auditRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
+import adminRequestRoutes from './routes/adminRequestRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -70,11 +71,14 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => res.send('Faculty Press API is Live 🚀'));
 
 
+
+
 // 
 // --- API ROUTES ---
 app.use('/api/posts', postsRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/audit', auditRoutes);
+app.use('/api/admin-requests', adminRequestRoutes);
 
 // 6. Start the Server
 const PORT = process.env.PORT || 5000;

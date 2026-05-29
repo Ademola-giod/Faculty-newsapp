@@ -2,7 +2,9 @@ import User from '../models/User.js';
 import Whitelist from '../models/Whitelist.js'; // Import the list we just made
 
 export const syncUser = async (req, res) => {
-  const { email, name, picture, sub } = req.body;
+  // const { email, name, picture, sub } = req.body;
+
+  const { email, name, picture, sub } = req.auth.payload; // Get user info from the JWT payload instead of req.body
   const lowerEmail = email.toLowerCase();
 
   try {
@@ -42,7 +44,7 @@ export const syncUser = async (req, res) => {
       });
     } else {
        // OPTIONAL: If user exists, update their profile picture/name in case they changed it in Auth0
-       user.fullName = name || user.fullname ;
+       user.fullName = name || user.fullName ;
        
        user.avatar = picture;
 

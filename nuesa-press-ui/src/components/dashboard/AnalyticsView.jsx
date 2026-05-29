@@ -437,7 +437,7 @@ const AnalyticsView = () => {
       </div>
 
       {/* PLATFORM SUMMARY (UNCHANGED STYLE) */}
-     <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm">
+     <div className="bg-white p-8 rounded-4xl border border-slate-200 shadow-sm">
   <h3 className="font-bold text-slate-800 mb-6">
     Platform Summary
   </h3>
