@@ -2,7 +2,7 @@ import { auth } from 'express-oauth2-jwt-bearer';
 import 'dotenv/config';
 import axios from 'axios';
 import User from '../models/User.js';
-import { ADMIN_EMAILS } from './whiteList.js';
+import { ADMIN_EMAILS } from '../middleware/whiteList.js';
 
 // 1. Verify Auth0 Token
 export const checkJwt = auth({
