@@ -47,14 +47,25 @@ io.on('connection', (socket) => {
 
 // 2. Security & Logging Middleware
 app.use(helmet()); // Protects headers
-app.use(cors());   // Allows React to talk to Node
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); // mobile apps / postman
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true
+}));   // Allows React to talk to Node
 app.use(morgan('dev')); // Logs requests in terminal
 app.use(express.json()); // Parses JSON bodies
 
 // 3. Database Connection
-// mongoose.connect(process.env.MONGO_URI)
-//   .then(() => console.log("✅ Faculty Press Database Connected"))
-//   .catch((err) => console.error("❌ DB Connection Error:", err));
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ Faculty Press Database Connected"))
+  .catch((err) => console.error("❌ DB Connection Error:", err));
 
 app.use('/api/analytics', analyticsRoutes);
 

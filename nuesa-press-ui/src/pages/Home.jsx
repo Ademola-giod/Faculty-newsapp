@@ -412,7 +412,7 @@ useEffect(() => {
             {/* HERO */}
             {showHero && heroPost && (
               <div onClick={() => setExpandedPost(heroPost)}
-                className="relative rounded-2xl overflow-hidden cursor-pointer group h-[360px] md:h-[420px] shadow-md">
+                className="relative rounded-2xl overflow-hidden cursor-pointer group h-90 md:h-105 shadow-md">
                 <img
                   src={heroPost.image?.url || 'https://images.unsplash.com/photo-1504711432869-efd597cdd047?q=80&w=1400'}
                   alt={heroPost.title}
