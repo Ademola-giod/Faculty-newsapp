@@ -12,6 +12,8 @@ import ArticleDrawer from '../components/dashboard/ArticleDrawer';
 import StudentDirectory from '../components/dashboard/StudentDirectory';
 import Home from './Home';
 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+
 const AdminDashboard = () => {
   const { logout, getAccessTokenSilently } = useAuth0();
   
@@ -40,7 +42,7 @@ const AdminDashboard = () => {
   // Fetch data rows from Express MongoDB cluster API
   const fetchPosts = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/posts');
+      const res = await axios.get(`${API_BASE_URL}/api/posts`);
       setPosts(res.data);
     } catch (err) {
       console.error("Error fetching posts from backend:", err);

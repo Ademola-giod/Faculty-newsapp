@@ -15,7 +15,7 @@ import { ADMIN_EMAILS } from '../utils/adminList';
 import BottomNav from '../components/feed/BottomNav';
 import CommentsSection from '../components/feed/CommentsSection';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 // ─── strip HTML tags + decode entities ────────────────────────────────────────
 const stripHtml = (html = '') =>
@@ -95,7 +95,7 @@ const Home = () => {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${API_URL}/api/posts`);
+      const res = await axios.get(`${API_BASE_URL}/api/posts`);
       const now = new Date();
       const ranked = res.data.map((post) => {
         const h = (now - new Date(post.createdAt)) / 3600000;
@@ -138,7 +138,7 @@ const Home = () => {
 
     // console.log("TOKEN:", token);
       await axios.patch(
-        `${API_URL}/api/posts/${postId}/like`,
+        `${API_BASE_URL}/api/posts/${postId}/like`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -168,7 +168,7 @@ const Home = () => {
     setLoadingComments(true);
 
     const res = await axios.get(
-      `${API_URL}/api/posts/${postId}/comments`
+      `${API_BASE_URL}/api/posts/${postId}/comments`
     );
 
     setComments(res.data);
@@ -215,7 +215,7 @@ useEffect(() => {
   const incrementView = async () => {
     try {
       await axios.patch(
-        `${API_URL}/api/posts/${expandedPost._id}/view`
+        `${API_BASE_URL}/api/posts/${expandedPost._id}/view`
       );
 
       // update UI instantly
@@ -556,26 +556,26 @@ useEffect(() => {
             </div>
 
             <div
-  className="prose prose-slate prose-base max-w-none
-    break-words overflow-hidden
-    prose-headings:font-black prose-headings:text-slate-900
-    prose-p:text-slate-700 prose-p:leading-relaxed
-    prose-p:break-words
-    prose-a:text-blue-800 prose-a:font-semibold
-    prose-a:break-all
-    prose-strong:text-slate-900
-    prose-img:rounded-xl
-    prose-img:max-w-full
-    prose-img:h-auto
-    prose-pre:overflow-x-auto
-    prose-code:break-words
-    prose-li:text-slate-700"
-  dangerouslySetInnerHTML={{ __html: expandedPost.content }}
-/>
-            
+            className="prose prose-slate prose-base max-w-none
+              break-words overflow-hidden
+              prose-headings:font-black prose-headings:text-slate-900
+              prose-p:text-slate-700 prose-p:leading-relaxed
+              prose-p:break-words
+              prose-a:text-blue-800 prose-a:font-semibold
+              prose-a:break-all
+              prose-strong:text-slate-900
+              prose-img:rounded-xl
+              prose-img:max-w-full
+              prose-img:h-auto
+              prose-pre:overflow-x-auto
+              prose-code:break-words
+              prose-li:text-slate-700"
+            dangerouslySetInnerHTML={{ __html: expandedPost.content }}
+          />
+              
 
-            {/* BOTTOM ACTIONS */}
-            <div className="mt-12 pt-6 border-t border-slate-200 flex items-center justify-between flex-wrap gap-4">
+              {/* BOTTOM ACTIONS */}
+              <div className="mt-12 pt-6 border-t border-slate-200 flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-3">
                 <button onClick={(e) => toggleLike(expandedPost._id, e)}
                   className={`flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-full border transition ${
