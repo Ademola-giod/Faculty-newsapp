@@ -27,42 +27,23 @@ const httpServer = createServer(app);
 
 const allowedOrigins = [
   process.env.CLIENT_URL,
-  "https://faculty-newsapp-client.vercel.app",
   "http://localhost:5173"
 ];
 
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-
-    return callback(new Error("CORS blocked: " + origin));
-  },
+  origin: allowedOrigins,
   credentials: true
 }));
 
-// const io = new Server(httpServer, {
-//   cors: {
-//     origin: allowedOrigins,
-//     methods: ['GET', 'POST', 'PATCH'],
-//     credentials: true
-//   }
-// });
-
 const io = new Server(httpServer, {
   cors: {
-    origin: [
-      "https://faculty-newsapp-client.vercel.app",
-      "http://localhost:5173"
-    ],
-    methods: ["GET", "POST", "PATCH"],
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PATCH'],
     credentials: true
-  },
-  transports: ["websocket", "polling"]
+  }
 });
+
+
 
 
 io.on('connection', (socket) => {
