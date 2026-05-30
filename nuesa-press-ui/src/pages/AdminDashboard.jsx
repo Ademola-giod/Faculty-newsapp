@@ -12,7 +12,10 @@ import ArticleDrawer from '../components/dashboard/ArticleDrawer';
 import StudentDirectory from '../components/dashboard/StudentDirectory';
 import Home from './Home';
 
-const API_BASE_URL = import.meta.env.VITE_BACKEND_URL ;
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
+
+console.log("ENV:", import.meta.env.VITE_BACKEND_URL);
+console.log("API_BASE_URL:", API_BASE_URL);
 
 const AdminDashboard = () => {
   const { logout, getAccessTokenSilently } = useAuth0();
