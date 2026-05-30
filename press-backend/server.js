@@ -24,18 +24,46 @@ const app = express();
 const httpServer = createServer(app);
 
 // 1. Initialize Socket.io for Real-time News
+
 const allowedOrigins = [
   process.env.CLIENT_URL,
+  "https://faculty-newsapp-client.vercel.app",
   "http://localhost:5173"
 ];
 
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("CORS blocked: " + origin));
+  },
+  credentials: true
+}));
+
+// const io = new Server(httpServer, {
+//   cors: {
+//     origin: allowedOrigins,
+//     methods: ['GET', 'POST', 'PATCH'],
+//     credentials: true
+//   }
+// });
+
 const io = new Server(httpServer, {
   cors: {
-    origin: allowedOrigins,
-    methods: ['GET', 'POST', 'PATCH'],
+    origin: [
+      "https://faculty-newsapp-client.vercel.app",
+      "http://localhost:5173"
+    ],
+    methods: ["GET", "POST", "PATCH"],
     credentials: true
-  }
+  },
+  transports: ["websocket", "polling"]
 });
+
 
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
@@ -47,18 +75,7 @@ io.on('connection', (socket) => {
 
 // 2. Security & Logging Middleware
 app.use(helmet()); // Protects headers
-app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin) return callback(null, true); // mobile apps / postman
-
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-
-    return callback(new Error("Not allowed by CORS"));
-  },
-  credentials: true
-}));   // Allows React to talk to Node
+// Allows React to talk to Node
 app.use(morgan('dev')); // Logs requests in terminal
 app.use(express.json()); // Parses JSON bodies
 
