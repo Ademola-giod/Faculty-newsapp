@@ -183,22 +183,55 @@ const Home = () => {
 
 
   // ─── filter ──────────────────────────────────────────────────────────────────
-  useEffect(() => {
-    let r = [...posts];
-    if (activeCategory !== 'Recommended')
-      r = r.filter((p) => p.category?.toLowerCase() === activeCategory.toLowerCase());
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      r = r.filter((p) => {
-        const kw = Array.isArray(p.keywords) ? p.keywords.join(' ').toLowerCase() : '';
-        return p.title?.toLowerCase().includes(q) || p.category?.toLowerCase().includes(q)
-            || p.content?.toLowerCase().includes(q) || kw.includes(q);
-      });
-    }
-    setFilteredPosts(r);
-  }, [posts, activeCategory, searchQuery]);
+      useEffect(() => {
+  let r = [...posts];
 
-  useEffect(() => { fetchPosts(); }, []);
+  if (activeCategory !== 'Recommended') {
+    r = r.filter((p) =>
+      (p.category || '')
+        .toLowerCase()
+        .trim() ===
+      activeCategory.toLowerCase().trim()
+    );
+  }
+
+  if (searchQuery.trim()) {
+    const q = searchQuery.toLowerCase();
+
+    r = r.filter((p) => {
+      const kw = Array.isArray(p.keywords)
+        ? p.keywords.join(' ').toLowerCase()
+        : '';
+
+      return (
+        p.title?.toLowerCase().includes(q) ||
+        p.category?.toLowerCase().includes(q) ||
+        p.content?.toLowerCase().includes(q) ||
+        kw.includes(q)
+      );
+    });
+  }
+
+  setFilteredPosts(r);
+}, [posts, activeCategory, searchQuery]);
+
+
+  // useEffect(() => {
+  //   let r = [...posts];
+  //   if (activeCategory !== 'Recommended')
+  //     r = r.filter((p) => p.category?.toLowerCase() === activeCategory.toLowerCase());
+  //   if (searchQuery.trim()) {
+  //     const q = searchQuery.toLowerCase();
+  //     r = r.filter((p) => {
+  //       const kw = Array.isArray(p.keywords) ? p.keywords.join(' ').toLowerCase() : '';
+  //       return p.title?.toLowerCase().includes(q) || p.category?.toLowerCase().includes(q)
+  //           || p.content?.toLowerCase().includes(q) || kw.includes(q);
+  //     });
+  //   }
+  //   setFilteredPosts(r);
+  // }, [posts, activeCategory, searchQuery]);
+
+  // useEffect(() => { fetchPosts(); }, []);
 
 
   // ─── increment views when a post is opened ─────────────────────────
