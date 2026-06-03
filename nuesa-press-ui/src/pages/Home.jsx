@@ -15,7 +15,7 @@ import { ADMIN_EMAILS } from '../utils/adminList';
 import BottomNav from '../components/feed/BottomNav';
 import CommentsSection from '../components/feed/CommentsSection';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 // ─── strip HTML tags + decode entities ────────────────────────────────────────
 const stripHtml = (html = '') =>
