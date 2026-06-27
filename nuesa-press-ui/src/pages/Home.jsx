@@ -1042,7 +1042,7 @@ const Home = () => {
                     <Flame size={11} /> TRENDING
                   </div>
                   <h2 className="text-white text-2xl md:text-3xl font-black leading-tight mb-2 line-clamp-2">{heroPost.title}</h2>
-                  <div className="flex items-center gap-2 text-xs text-white/60 font-semibold uppercase tracking-wider">
+                  <div classNam e="flex items-center gap-2 text-xs text-white/60 font-semibold uppercase tracking-wider">
                     <span>{heroPost.category}</span><span>·</span>
                     <span>{relTime(heroPost.createdAt)}</span>
                   </div>
