@@ -161,6 +161,35 @@ export const getPublicPosts = async (req, res) => {
 
 };
 
+// . GET SINGLE POST
+export const getPostById = async (req, res) => {
+
+  try {
+
+    const post = await Post.findOne(
+      {_id: req.params.id,
+        status: 'Published'
+      }
+    );
+
+    if (!post) {
+      return res.status(404).json({
+        message: "Post not found"
+      });
+    }
+
+    res.status(200).json(post);
+
+  } catch (error) {
+
+    res.status(500).json({
+      message: error.message
+    });
+
+  }
+
+};
+
 
 // 4. TRACK SHARE
 export const trackShare = async (req, res) => {

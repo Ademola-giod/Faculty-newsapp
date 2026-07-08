@@ -2,6 +2,7 @@ import express from 'express';
 import {
   createPost,
   getPublicPosts,
+  getPostById,
   deletePost,
   toggleLike,
   incrementView,
@@ -27,6 +28,9 @@ const router = express.Router();
 
 // Get all posts
 router.get('/', getPublicPosts);
+
+// Get a single post by ID
+router.get('/:id', getPostById);
 
 // Increment views
 router.patch('/:id/view', incrementView);

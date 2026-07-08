@@ -1,9 +1,11 @@
-import React from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
+
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Landing from './pages/Landing';
 import Home from './pages/Home';
 import AdminDashboard from './pages/AdminDashboard';
 import { ADMIN_EMAILS } from './utils/adminList';
+import PostPage from './pages/PostPage';
 
 function App() {
   const { user, isAuthenticated, isLoading } = useAuth0();
@@ -28,14 +30,47 @@ function App() {
       {/* Logic: If not logged in -> Landing. 
          If logged in AND admin -> Dashboard.
          Otherwise -> Home (Student Feed).
-      */}
-      {!isAuthenticated ? (
-        <Landing />
-      ) : isAdmin ? (
-        <AdminDashboard />
-      ) : (
-        <Home />
-      )}
+      */} 
+      <Routes>
+
+      <Route
+        path="/"
+        element={
+          !isAuthenticated ? (
+            <Landing />
+          ) : (
+            <Navigate to={isAdmin ? "/admin" : "/feed"} replace />
+          )
+        }
+      />
+
+      <Route
+        path="/feed"
+        element={
+          isAuthenticated ? (
+            <Home />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+      <Route
+        path="/admin"
+        element={
+          isAdmin ? (
+            <AdminDashboard />
+          ) : (
+            <Navigate to="/" replace />
+          )
+        }
+      />
+
+      <Route 
+      path="/post/:id"
+      element={<PostPage />}
+      />
+
+      </Routes>
     </div>
   );
 }

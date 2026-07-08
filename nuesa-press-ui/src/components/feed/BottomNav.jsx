@@ -1,18 +1,4 @@
-// import React from 'react';
-// import { Home as HomeIcon, Compass, Bookmark, User } from 'lucide-react';
 
-// const BottomNav = () => {
-//   return (
-//     <nav className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-xl px-10 py-5 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.12)] flex items-center gap-10 border border-slate-200/50 z-50">
-//       <button className="text-blue-600"><HomeIcon size={24}/></button>
-//       <button className="text-slate-300 hover:text-blue-500 transition"><Compass size={24}/></button>
-//       <button className="text-slate-300 hover:text-blue-500 transition"><Bookmark size={24}/></button>
-//       <button className="text-slate-300 hover:text-blue-500 transition"><User size={24}/></button>
-//     </nav>
-//   );
-// };
-
-// export default BottomNav;
 
 import {
   Home,
