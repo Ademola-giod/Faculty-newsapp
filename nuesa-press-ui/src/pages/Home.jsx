@@ -32,6 +32,7 @@ const Home = () => {
     searchQuery,
     setSearchQuery,
     likedPosts,
+    filteredPosts,
     bookmarkedPosts,
     likeCounts,
     categories,
