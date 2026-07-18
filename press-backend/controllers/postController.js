@@ -144,12 +144,41 @@ export const updatePost = async (req, res) => {
 export const getPublicPosts = async (req, res) => {
 
   try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 12));
+    const search = req.query.search?.trim();
+    const category = req.query.category?.trim();
 
+    const query = { status: 'Published' };
+
+    if (category && category !== 'Recommended') {
+      query.category = category;
+    }
+
+    if (search) {
+      const searchRegex = new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      query.$or = [
+        { title: searchRegex },
+        { content: searchRegex },
+        { category: searchRegex },
+        { keywords: { $elemMatch: { $regex: searchRegex, $options: 'i' } } }
+      ];
+    }
+
+    const total = await Post.countDocuments(query);
     const posts = await Post
-      .find({ status: 'Published' })
-      .sort({ createdAt: -1 });
+      .find(query)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
 
-    res.json(posts);
+    res.json({
+      posts,
+      page,
+      limit,
+      total,
+      hasMore: page * limit < total
+    });
 
   } catch (error) {
 
