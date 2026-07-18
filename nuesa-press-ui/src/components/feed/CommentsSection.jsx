@@ -1,5 +1,7 @@
 import  { useEffect, useState, useCallback  } from 'react';
 import axios from 'axios';
+import { useAuth0 } from '@auth0/auth0-react';
+import { getTokenWithFallback } from '../../utils/authHelpers';
 import { MessageCircle, Send } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
@@ -9,6 +11,8 @@ const CommentsSection = ({
   user,
   getAccessTokenSilently
 }) => {
+
+  const { loginWithPopup, loginWithRedirect } = useAuth0();
 
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState('');
@@ -43,7 +47,15 @@ const CommentsSection = ({
     try {
       setSubmitting(true);
 
-      const token = await getAccessTokenSilently();
+      const token = await getTokenWithFallback({
+        getAccessTokenSilently,
+        loginWithPopup,
+        loginWithRedirect,
+        authorizationParams: {
+          audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+          scope: 'openid profile email offline_access'
+        }
+      });
 
       const res = await axios.post(
         `${API_URL}/api/posts/${expandedPost._id}/comments`,

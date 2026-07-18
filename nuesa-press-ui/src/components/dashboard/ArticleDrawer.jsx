@@ -2,7 +2,7 @@ import { X, Image as ImageIcon, Trash2 } from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 
-const ArticleDrawer = ({ isOpen, onClose, formData, setFormData, onPublish, previewUrl, setSelectedFile }) => {
+const ArticleDrawer = ({ isOpen, onClose, formData, setFormData, onPublish, previewUrl, setSelectedFile, onClearDraft }) => {
   if (!isOpen) return null;
 
   const handleFileSelect = (e) => {
@@ -11,6 +11,11 @@ const ArticleDrawer = ({ isOpen, onClose, formData, setFormData, onPublish, prev
   };
 
   const handleClearDraft = () => {
+    if (onClearDraft) {
+      onClearDraft();
+      return;
+    }
+
     if (window.confirm("Clear all text and start over?")) {
       const emptyForm = { title: '', category: 'Faculty News', keywords: '', content: '' };
       setFormData(emptyForm);

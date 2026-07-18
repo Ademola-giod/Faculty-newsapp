@@ -2,6 +2,7 @@ import  { useState, useEffect } from 'react';
 import axios from 'axios';
 import API from '../api/api';
 import { useAuth0 } from '@auth0/auth0-react';
+import { getTokenWithFallback } from '../utils/authHelpers';
 import { LayoutDashboard, FileText, BarChart3, Users, LogOut, Plus, X, Menu } from 'lucide-react';
 
 // Modular components
@@ -14,11 +15,45 @@ import Home from './Home';
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
-console.log("ENV:", import.meta.env.VITE_BACKEND_URL);
-console.log("API_BASE_URL:", API_BASE_URL);
+const createEmptyFormData = () => ({ title: '', category: 'Faculty News', keywords: '', content: '' });
+
+const getSavedDraft = () => {
+  if (typeof window === 'undefined') return createEmptyFormData();
+
+  try {
+    const savedDraft = localStorage.getItem('nuesa_article_draft');
+    if (!savedDraft) return createEmptyFormData();
+
+    const parsed = JSON.parse(savedDraft);
+    return { ...createEmptyFormData(), ...parsed };
+  } catch (error) {
+    console.error('Error reading saved draft:', error);
+    return createEmptyFormData();
+  }
+};
+
+const dataUrlToFile = (dataUrl, filename = 'draft-image.png') => {
+  if (!dataUrl) return null;
+
+  const arr = dataUrl.split(',');
+  const mimeMatch = arr[0].match(/:(.*?);/);
+  const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+  const bstr = atob(arr[1]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+
+  return new File([u8arr], filename, { type: mime });
+};
+
+// console.log("ENV:", import.meta.env.VITE_BACKEND_URL);
+// console.log("API_BASE_URL:", API_BASE_URL);
 
 const AdminDashboard = () => {
-  const { logout, getAccessTokenSilently } = useAuth0();
+  const { logout, getAccessTokenSilently, loginWithPopup, loginWithRedirect } = useAuth0();
   
   // --- 1. HOISTED STATE DECLARATIONS AT THE ABSOLUTE TOP ---
   const [activeTab, setActiveTab] = useState('Dashboard');
@@ -27,8 +62,21 @@ const AdminDashboard = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false); 
   
   // File upload and image previews states
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(() => {
+    const savedDraft = getSavedDraft();
+    if (savedDraft?.imageDataUrl) {
+      return dataUrlToFile(savedDraft.imageDataUrl, savedDraft.imageName || 'draft-image.png');
+    }
+    return null;
+  });
+  const [previewUrl, setPreviewUrl] = useState(() => {
+    const savedDraft = getSavedDraft();
+    return savedDraft?.imageDataUrl || null;
+  });
+  const [draftImageDataUrl, setDraftImageDataUrl] = useState(() => {
+    const savedDraft = getSavedDraft();
+    return savedDraft?.imageDataUrl || null;
+  });
   
   // Live database communication data states
   const [posts, setPosts] = useState([]);
@@ -36,8 +84,8 @@ const AdminDashboard = () => {
 
   // Draft persistence initializer state
   const [formData, setFormData] = useState(() => {
-    const savedDraft = localStorage.getItem('nuesa_article_draft');
-    return savedDraft ? JSON.parse(savedDraft) : { title: '', category: 'Faculty News', keywords: '', content: '' };
+    const savedDraft = getSavedDraft();
+    return { ...createEmptyFormData(), ...savedDraft };
   });
 
   // --- 2. RUN LIFECYCLE HOOKS SECURELY ---
@@ -69,8 +117,16 @@ const AdminDashboard = () => {
 
   // Synchronize draft memory buffer state on input change
   useEffect(() => {
-    localStorage.setItem('nuesa_article_draft', JSON.stringify(formData));
-  }, [formData]);
+    if (typeof window === 'undefined') return;
+
+    const draftPayload = {
+      ...formData,
+      imageDataUrl: draftImageDataUrl,
+      imageName: selectedFile?.name || null,
+    };
+
+    localStorage.setItem('nuesa_article_draft', JSON.stringify(draftPayload));
+  }, [formData, draftImageDataUrl, selectedFile]);
 
   // Safely compute image preview URL once state mounts
   useEffect(() => {
@@ -78,10 +134,43 @@ const AdminDashboard = () => {
       setPreviewUrl(null);
       return;
     }
+
     const objectUrl = URL.createObjectURL(selectedFile);
     setPreviewUrl(objectUrl);
+
     return () => URL.revokeObjectURL(objectUrl);
   }, [selectedFile]);
+
+  const handleFileSelect = (file) => {
+    if (!file) {
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      setDraftImageDataUrl(null);
+      return;
+    }
+
+    setSelectedFile(file);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+      setDraftImageDataUrl(typeof dataUrl === 'string' ? dataUrl : null);
+    };
+    reader.onerror = () => {
+      setDraftImageDataUrl(null);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const clearDraft = () => {
+    if (window.confirm('Clear all text and start over?')) {
+      setFormData(createEmptyFormData());
+      setSelectedFile(null);
+      setPreviewUrl(null);
+      setDraftImageDataUrl(null);
+      localStorage.removeItem('nuesa_article_draft');
+    }
+  };
 
   // --- 3. SECURE AUTHENTICATED PUBLISH DISPATCHER ---
   const handlePublish = async () => {
@@ -93,10 +182,17 @@ const AdminDashboard = () => {
     if (selectedFile) data.append('image', selectedFile);
 
     try {
-      const token = await getAccessTokenSilently({
-        authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE }
+      console.log("Step 1: About to request token...");
+      const token = await getTokenWithFallback({
+        getAccessTokenSilently,
+        loginWithPopup,
+        loginWithRedirect,
+        authorizationParams: {
+          audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+          scope: 'openid profile email offline_access'
+        }
       });
-        
+      console.log("Step 2: Token received:", token);
 
       const res = await axios.post(`${API_BASE_URL}/api/posts`, data, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` }
@@ -104,9 +200,11 @@ const AdminDashboard = () => {
       if (res.status === 201) {
         alert("News is LIVE!");
         setIsDrawerOpen(false);
-        setFormData({ title: '', category: 'Faculty News', keywords: '', content: '' });
-        localStorage.removeItem('nuesa_article_draft');
+        setFormData(createEmptyFormData());
         setSelectedFile(null);
+        setPreviewUrl(null);
+        setDraftImageDataUrl(null);
+        localStorage.removeItem('nuesa_article_draft');
         fetchPosts(); 
       }
     } catch (err) {
@@ -181,7 +279,7 @@ const AdminDashboard = () => {
               <h2 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">{activeTab}</h2>
               <p className="text-slate-500 font-medium mt-1 uppercase text-xs tracking-widest italic">Faculty of Education • UI</p>
             </div>
-            <button onClick={() => { setFormData({ title: '', category: 'Faculty News', keywords: '', content: '' }); setIsDrawerOpen(true); }} className="w-full md:w-auto bg-slate-900 hover:bg-black text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-xl transition-all"><Plus size={18}/> New Article</button>
+            <button onClick={() => { setFormData(createEmptyFormData()); setIsDrawerOpen(true); }} className="w-full md:w-auto bg-slate-900 hover:bg-black text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-xl transition-all"><Plus size={18}/> New Article</button>
           </header>
         )}
 
@@ -200,7 +298,7 @@ const AdminDashboard = () => {
         </div>
       </main>
 
-      <ArticleDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} formData={formData} setFormData={setFormData} onPublish={handlePublish} previewUrl={previewUrl} setSelectedFile={setSelectedFile} />
+      <ArticleDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} formData={formData} setFormData={setFormData} onPublish={handlePublish} previewUrl={previewUrl} setSelectedFile={handleFileSelect} onClearDraft={clearDraft} />
     </div>
   );
 };

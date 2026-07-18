@@ -24,6 +24,7 @@ const Home = () => {
 
   const {
     loading,
+    loadingMore,
     error,
     activeCategory,
     setActiveCategory,
@@ -37,12 +38,15 @@ const Home = () => {
     likeCounts,
     categories,
     fetchPosts,
+    loadMore,
+    hasMore,
     toggleLike,
     toggleBookmark,
     sharePost,
     relTime,
     showHero,
     heroPost,
+    featuredPosts,
     gridPosts,
     posts
   } = useFeedPosts({ getAccessTokenSilently });
@@ -73,7 +77,7 @@ const Home = () => {
     </div>
   );
 
-  // ─── main ─────────────────────────────────────────────────────────────────────
+  // main
   return (
     <div className="bg-slate-100 min-h-screen pb-32 text-slate-900">
       <FeedHeader
@@ -85,7 +89,7 @@ const Home = () => {
         logout={logout}
       />
 
-      {/* ── FEED ────────────────────────────────────────────────────────────── */}
+      {/*  FEED  */}
       {activeMenu === 'feed' && (
         <>
           <FeedCategories
@@ -95,28 +99,47 @@ const Home = () => {
           />
 
           <main className="max-w-6xl mx-auto px-4 space-y-6">
-            <FeedHero heroPost={heroPost} onExpand={handleOpenPost} relTime={relTime} />
+            <FeedHero
+              heroPost={heroPost}
+              featuredPosts={featuredPosts}
+              onExpand={handleOpenPost}
+              relTime={relTime}
+            />
 
             <h3 className="text-base font-black text-slate-800">
               {searchQuery ? `Results (${filteredPosts.length})` : activeCategory === 'Recommended' ? 'Latest updates' : activeCategory}
             </h3>
 
             {gridPosts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 pb-4">
-                {gridPosts.map((post) => (
-                  <FeedPostCard
-                    key={post._id}
-                    post={post}
-                    onExpand={handleOpenPost}
-                    onLike={toggleLike}
-                    onShare={sharePost}
-                    onBookmark={toggleBookmark}
-                    likedPosts={likedPosts}
-                    bookmarkedPosts={bookmarkedPosts}
-                    likeCounts={likeCounts}
-                  />
-                ))}
-              </div>
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 pb-4">
+                  {gridPosts.map((post) => (
+                    <FeedPostCard
+                      key={post._id}
+                      post={post}
+                      onExpand={handleOpenPost}
+                      onLike={toggleLike}
+                      onShare={sharePost}
+                      onBookmark={toggleBookmark}
+                      likedPosts={likedPosts}
+                      bookmarkedPosts={bookmarkedPosts}
+                      likeCounts={likeCounts}
+                    />
+                  ))}
+                </div>
+
+                {hasMore && (
+                  <div className="flex justify-center pb-4">
+                    <button
+                      onClick={loadMore}
+                      disabled={loadingMore}
+                      className="rounded-full bg-white px-6 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {loadingMore ? 'Loading…' : 'Load more'}
+                    </button>
+                  </div>
+                )}
+              </>
             ) : (
               <EmptyFeedState
                 title="No posts found"
@@ -127,7 +150,7 @@ const Home = () => {
         </>
       )}
 
-      {/* ── EXPLORE ───────────────────────────────────────────────────────── */}
+      {/*  EXPLORE  */}
       {activeMenu === 'explore' && (
         <ExploreSection
           categories={categories}
@@ -139,7 +162,7 @@ const Home = () => {
         />
       )}
 
-      {/* ── SAVED ─────────────────────────────────────────────────────────── */}
+      {/*  SAVED  */}
       {activeMenu === 'saved' && (
         <SavedPostsSection
           bookmarkedPosts={bookmarkedPosts}

@@ -96,6 +96,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
+import { getTokenWithFallback } from '../utils/authHelpers';
 import { X, Heart, Bookmark, Share2, Eye } from 'lucide-react';
 
 import CommentsSection from '../components/feed/CommentsSection';
@@ -138,7 +139,7 @@ const relTime = (date) => {
 const PostPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user, getAccessTokenSilently } = useAuth0();
+  const { user, getAccessTokenSilently, loginWithPopup, loginWithRedirect } = useAuth0();
 
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -208,14 +209,22 @@ const PostPage = () => {
     setLikeCount((count) => count + (wasLiked ? -1 : 1));
 
     try {
-      const token = await getAccessTokenSilently({
-        authorizationParams: { audience: import.meta.env.VITE_AUTH0_AUDIENCE }
+      const token = await getTokenWithFallback({
+        getAccessTokenSilently,
+        loginWithPopup,
+        loginWithRedirect,
+        authorizationParams: {
+          audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+          scope: 'openid profile email offline_access'
+        }
       });
 
-      await fetch(`${API_BASE_URL}/api/posts/${post._id}/like`, {
-        method: 'PATCH',
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      if (token) {
+        await fetch(`${API_BASE_URL}/api/posts/${post._id}/like`, {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
     } catch (err) {
       setLikedPosts(prev);
       saveLS(LS_LIKES, prev);

@@ -1,32 +1,63 @@
-import { Flame } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import BreakingNews from './BreakingNews';
 
-const FeedHero = ({ heroPost, onExpand, relTime }) => {
-  if (!heroPost) return null;
+const FeedHero = ({ heroPost, featuredPosts = [], onExpand, relTime }) => {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  const carouselPosts = useMemo(() => {
+    if (featuredPosts.length > 0) return featuredPosts;
+    return heroPost ? [heroPost] : [];
+  }, [featuredPosts, heroPost]);
+
+  useEffect(() => {
+    if (carouselPosts.length <= 1) return undefined;
+
+    const timer = window.setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % carouselPosts.length);
+    }, 7000);
+
+    return () => window.clearInterval(timer);
+  }, [carouselPosts.length]);
+
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [heroPost?._id]);
+
+  if (!carouselPosts.length) return null;
+
+  const activePost = carouselPosts[activeIndex] || carouselPosts[0];
 
   return (
-    <div
-      onClick={() => onExpand(heroPost)}
-      className="relative rounded-2xl overflow-hidden cursor-pointer group h-[360px] md:h-[420px] shadow-md"
-    >
-      <img
-        src={heroPost.image?.url || 'https://images.unsplash.com/photo-1504711432869-efd597cdd047?q=80&w=1400'}
-        alt={heroPost.title}
-        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition duration-700"
-      />
-      <div className="absolute inset-0 bg-linear-to-t from-black/88 via-black/30 to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-        <div className="inline-flex items-center gap-1.5 bg-red-600 text-white text-[10px] font-bold px-3 py-1 rounded-full mb-3">
-          <Flame size={11} /> TRENDING
-        </div>
-        <h2 className="text-white text-2xl md:text-3xl font-black leading-tight mb-2 line-clamp-2">
-          {heroPost.title}
-        </h2>
-        <div className="flex items-center gap-2 text-xs text-white/60 font-semibold uppercase tracking-wider">
-          <span>{heroPost.category}</span>
-          <span>·</span>
-          <span>{relTime(heroPost.createdAt)}</span>
+    <div className="relative">
+      <div className="absolute inset-0 -z-10 blur-3xl bg-red-500/20 rounded-[2rem] scale-95" />
+
+      <div className="relative overflow-hidden rounded-[2rem]">
+        <div className="w-full transition-transform duration-700 ease-out" style={{ transform: `translateX(-${activeIndex * 100}%)` }}>
+          <div className="flex w-full">
+            {carouselPosts.map((post) => (
+              <div key={post._id} className="w-full shrink-0">
+                <BreakingNews topPost={post} onExpand={onExpand} relTime={relTime} />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+
+      {carouselPosts.length > 1 && (
+        <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+          {carouselPosts.map((post, index) => (
+            <button
+              key={post._id}
+              type="button"
+              aria-label={`Go to slide ${index + 1}`}
+              onClick={() => setActiveIndex(index)}
+              className={`h-1.5 rounded-full transition-all duration-300 ${
+                activeIndex === index ? 'w-8 bg-white' : 'w-4 bg-white/55 hover:bg-white/80'
+              }`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

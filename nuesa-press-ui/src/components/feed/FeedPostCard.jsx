@@ -42,12 +42,12 @@ const FeedPostCard = ({
       className="bg-white rounded-2xl border border-slate-200 overflow-hidden hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 cursor-pointer flex flex-col h-full"
     >
       {post.image?.url ? (
-        <div className="h-48 overflow-hidden shrink-0">
+        <div className="h-48 w-full overflow-hidden shrink-0 bg-slate-100">
           <img
             src={post.image.url}
             alt={post.title}
             loading="lazy"
-            className="w-full h-full object-cover hover:scale-105 transition duration-500"
+            className="w-full h-full object-cover object-center block hover:scale-105 transition duration-500"
           />
         </div>
       ) : (

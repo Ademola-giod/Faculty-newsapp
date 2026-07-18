@@ -4,6 +4,8 @@ import {
   initializeSocketListeners,
   removeSocketListeners
 } from '../sockets/socketListeners';
+import { useAuth0 } from '@auth0/auth0-react';
+import { getTokenWithFallback } from '../utils/authHelpers';
 
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
@@ -63,9 +65,11 @@ const relTime = (date) => {
 };
 
 export const useFeedPosts = ({ getAccessTokenSilently }) => {
+  const { loginWithPopup, loginWithRedirect } = useAuth0();
   const [posts, setPosts] = useState([]);
   const [filteredPosts, setFilteredPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
   const [activeCategory, setActiveCategory] = useState('Recommended');
   const [activeMenu, setActiveMenu] = useState('feed');
@@ -74,47 +78,67 @@ export const useFeedPosts = ({ getAccessTokenSilently }) => {
   const [likedPosts, setLikedPosts] = useState(() => loadLS(LS_LIKES));
   const [bookmarkedPosts, setBookmarkedPosts] = useState(() => loadLS(LS_BOOKMARKS));
   const [likeCounts, setLikeCounts] = useState({});
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
 
   const categories = useMemo(
     () => ['Recommended', ...new Set(posts.map((post) => post.category).filter(Boolean))],
     [posts]
   );
 
-  const fetchPosts = useCallback(async () => {
+  const fetchPosts = useCallback(async ({ append = false, pageNumber = 1 } = {}) => {
     try {
-      setLoading(true);
-      setError(null);
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+        setError(null);
+      }
 
-      const res = await axios.get(`${API_BASE_URL}/api/posts`, { timeout: 15000 });
-      const now = new Date();
-      const ranked = res.data.map((post) => {
-        const h = (now - new Date(post.createdAt)) / 3600000;
-        const e =
-          (post.metrics?.likes?.length || 0) * 3 +
-          (post.metrics?.shares || 0) * 5 +
-          (post.metrics?.views || 0) * 0.2;
+      const params = {
+        page: pageNumber,
+        limit: 8,
+      };
 
-        return { ...post, decayScore: e / Math.pow(h + 2, 1.5) };
-      });
+      if (searchQuery.trim()) {
+        params.search = searchQuery.trim();
+      }
 
-      ranked.sort((a, b) => b.decayScore - a.decayScore);
-      setPosts(ranked);
+      if (activeCategory && activeCategory !== 'Recommended') {
+        params.category = activeCategory;
+      }
+
+      const res = await axios.get(`${API_BASE_URL}/api/posts`, { params, timeout: 15000 });
+      const payload = res.data?.posts || [];
+
+      const ranked = payload
+        .map((post) => ({ ...post }))
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      setPosts((prev) => (append ? [...prev, ...ranked] : ranked));
+      setFilteredPosts((prev) => (append ? [...prev, ...ranked] : ranked));
+      setPage(res.data?.page || pageNumber);
+      setHasMore(Boolean(res.data?.hasMore));
 
       const counts = {};
       ranked.forEach((p) => {
         counts[p._id] = p.metrics?.likes?.length || 0;
       });
-      setLikeCounts(counts);
+      setLikeCounts((prev) => ({ ...prev, ...counts }));
     } catch (err) {
       console.error('fetchPosts:', err);
       setError('Could not load posts. Please check your connection and try again.');
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
-  }, []);
+  }, [activeCategory, searchQuery]);
 
   useEffect(() => {
-    fetchPosts();
+    setPosts([]);
+    setFilteredPosts([]);
+    setPage(1);
+    fetchPosts({ append: false, pageNumber: 1 });
   }, [fetchPosts]);
 
   const toggleLike = useCallback(
@@ -123,7 +147,8 @@ export const useFeedPosts = ({ getAccessTokenSilently }) => {
 
       const prev = { ...likedPosts };
       const wasLiked = !!prev[postId];
-      const next = { ...prev, [postId]: !wasLiked };
+      const optimisticValue = !wasLiked;
+      const next = { ...prev, [postId]: optimisticValue };
       if (wasLiked) delete next[postId];
 
       setLikedPosts(next);
@@ -131,20 +156,35 @@ export const useFeedPosts = ({ getAccessTokenSilently }) => {
       setLikeCounts((c) => ({ ...c, [postId]: (c[postId] || 0) + (wasLiked ? -1 : 1) }));
 
       try {
-        const token = await getAccessTokenSilently({
-          authorizationParams: {
-            audience: import.meta.env.VITE_AUTH0_AUDIENCE
-          }
-        });
 
-        await axios.patch(`${API_BASE_URL}/api/posts/${postId}/like`, {}, {
+          console.log(" getting token for like request...")
+          const token = await getTokenWithFallback({
+            getAccessTokenSilently,
+            loginWithPopup,
+            loginWithRedirect,
+            authorizationParams: {
+              audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+              scope: 'openid profile email offline_access'
+            }
+          });
+
+          console.log("token recieved:", token);
+
+        const res = await axios.patch(`${API_BASE_URL}/api/posts/${postId}/like`, {}, {
           headers: { Authorization: `Bearer ${token}` }
         });
+
+        const liked = Boolean(res.data?.liked);
+        const likes = Number(res.data?.likes || 0);
+
+        setLikedPosts((current) => {
+          const updated = { ...current, [postId]: liked };
+          saveLS(LS_LIKES, updated);
+          return updated;
+        });
+        setLikeCounts((c) => ({ ...c, [postId]: likes }));
       } catch (err) {
-        setLikedPosts(prev);
-        saveLS(LS_LIKES, prev);
-        setLikeCounts((c) => ({ ...c, [postId]: (c[postId] || 0) + (wasLiked ? 1 : -1) }));
-        console.error('Like error:', err);
+        console.warn('Like saved locally; backend request failed.', err?.message || err);
       }
     },
     [getAccessTokenSilently, likedPosts]
@@ -162,29 +202,8 @@ export const useFeedPosts = ({ getAccessTokenSilently }) => {
   );
 
   useEffect(() => {
-    let r = [...posts];
-
-    if (activeCategory !== 'Recommended') {
-      r = r.filter(
-        (p) => (p.category || '').toLowerCase().trim() === activeCategory.toLowerCase().trim()
-      );
-    }
-
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      r = r.filter((p) => {
-        const kw = Array.isArray(p.keywords) ? p.keywords.join(' ').toLowerCase() : '';
-        return (
-          p.title?.toLowerCase().includes(q) ||
-          p.category?.toLowerCase().includes(q) ||
-          p.content?.toLowerCase().includes(q) ||
-          kw.includes(q)
-        );
-      });
-    }
-
-    setFilteredPosts(r);
-  }, [posts, activeCategory, searchQuery]);
+    setFilteredPosts(posts);
+  }, [posts]);
 
   useEffect(() => {
     if (!expandedPost?._id) return;
@@ -226,13 +245,36 @@ export const useFeedPosts = ({ getAccessTokenSilently }) => {
   }, [fetchPosts]);
 
   const showHero = activeCategory === 'Recommended' && !searchQuery && filteredPosts.length > 0;
-  const heroPost = showHero ? filteredPosts[0] : null;
-  const gridPosts = showHero ? filteredPosts.slice(1) : filteredPosts;
+
+  const featuredPosts = useMemo(() => {
+    if (!showHero || filteredPosts.length === 0) return [];
+
+    const recentWindowMs = 12 * 60 * 60 * 1000;
+    const now = Date.now();
+
+    const recentPosts = filteredPosts.filter((post) => {
+      const createdAt = new Date(post.createdAt).getTime();
+      return !Number.isNaN(createdAt) && now - createdAt <= recentWindowMs;
+    });
+
+    const sourcePosts = recentPosts.length > 0 ? recentPosts : filteredPosts;
+
+    return [...sourcePosts]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .slice(0, 5);
+  }, [filteredPosts, showHero]);
+
+  const heroPost = showHero ? featuredPosts[0] || null : null;
+
+  const gridPosts = showHero
+    ? filteredPosts.filter((post) => post._id !== heroPost?._id)
+    : filteredPosts;
 
   return {
     posts,
     filteredPosts,
     loading,
+    loadingMore,
     error,
     activeCategory,
     setActiveCategory,
@@ -247,12 +289,18 @@ export const useFeedPosts = ({ getAccessTokenSilently }) => {
     likeCounts,
     categories,
     fetchPosts,
+    loadMore: () => {
+      if (!hasMore || loadingMore) return;
+      fetchPosts({ append: true, pageNumber: page + 1 });
+    },
+    hasMore,
     toggleLike,
     toggleBookmark,
     sharePost,
     relTime,
     showHero,
     heroPost,
+    featuredPosts,
     gridPosts
   };
 };
