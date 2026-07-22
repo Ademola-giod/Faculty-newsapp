@@ -38,7 +38,7 @@ export const attachUserInfo = async (req, res, next) => {
       return next();
     }
 
-    // 🔥 IMPORTANT FIX: fetch real user profile from Auth0
+    // IMPORTANT FIX: fetch real user profile from Auth0
     const accessToken = req.auth.token;
 
     const userInfoRes = await axios.get(
