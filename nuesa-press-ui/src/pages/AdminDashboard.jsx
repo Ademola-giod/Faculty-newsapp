@@ -81,6 +81,10 @@ const AdminDashboard = () => {
   // Live database communication data states
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMorePosts, setLoadingMorePosts] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMorePosts, setHasMorePosts] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Draft persistence initializer state
   const [formData, setFormData] = useState(() => {
@@ -91,20 +95,55 @@ const AdminDashboard = () => {
   // --- 2. RUN LIFECYCLE HOOKS SECURELY ---
   
   // Fetch data rows from Express MongoDB cluster API
-  const fetchPosts = async () => {
+  const fetchPosts = async ({ pageNumber = 1, append = false, search = '' } = {}) => {
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/posts`);
-      setPosts(res.data);
+      if (append) {
+        setLoadingMorePosts(true);
+      } else {
+        setLoading(true);
+      }
+
+      const params = {
+        page: pageNumber,
+        limit: 20
+      };
+
+      if (search) {
+        params.search = search;
+      }
+
+      const token = await getTokenWithFallback({
+        getAccessTokenSilently,
+        loginWithPopup,
+        loginWithRedirect,
+        authorizationParams: {
+          audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+          scope: 'openid profile email offline_access'
+        }
+      });
+
+      const res = await axios.get(`${API_BASE_URL}/api/posts/admin`, {
+        params,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      const data = res.data || {};
+
+      setPosts((prev) => (append ? [...prev, ...data.posts] : data.posts || []));
+      setPage(data.page || pageNumber);
+      setHasMorePosts(Boolean(data.hasMore));
     } catch (err) {
-      console.error("Error fetching posts from backend:", err);
+      console.error("Error fetching admin posts from backend:", err);
     } finally {
       setLoading(false);
+      setLoadingMorePosts(false);
     }
   };
 
   useEffect(() => {
-    fetchPosts();
-  }, []);
+    fetchPosts({ pageNumber: 1, append: false, search: searchTerm });
+  }, [searchTerm]);
 
   // Collapse the sidebar completely on desktop if 'View Live Feed' is chosen
   useEffect(() => {
@@ -285,7 +324,21 @@ const AdminDashboard = () => {
 
         <div className="w-full min-h-screen">
             {activeTab === 'Dashboard' && <DashboardOverview />}
-            {activeTab === 'Manage Posts' && <ManagePosts posts={posts} onEdit={(post) => { setFormData(post); setIsDrawerOpen(true); }} />}
+            {activeTab === 'Manage Posts' && (
+              <ManagePosts
+                posts={posts}
+                searchQuery={searchTerm}
+                onSearchChange={setSearchTerm}
+                hasMore={hasMorePosts}
+                loadMore={async () => {
+                  if (!hasMorePosts || loadingMorePosts) return;
+                  await fetchPosts({ pageNumber: page + 1, append: true, search: searchTerm });
+                }}
+                loadingMore={loadingMorePosts}
+                onEdit={(post) => { setFormData(post); setIsDrawerOpen(true); }}
+                onDelete={() => {}}
+              />
+            )}
             {activeTab === 'Analytics' && <AnalyticsView />}
             {activeTab === 'Students' && <StudentDirectory />}
 

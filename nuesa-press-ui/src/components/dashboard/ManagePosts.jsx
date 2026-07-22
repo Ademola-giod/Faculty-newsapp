@@ -1,12 +1,7 @@
-import { useState } from 'react';
 import { Search, Edit3, Trash2 } from 'lucide-react';
 
-const ManagePosts = ({ onEdit, onDelete, posts = [] }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const filteredPosts = posts.filter((post) =>
-    post.title?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+const ManagePosts = ({ onEdit, onDelete, posts = [], searchQuery = '', onSearchChange = () => {}, hasMore = false, loadMore = () => {}, loadingMore = false }) => {
+  const filteredPosts = posts;
 
   return (
     <div className="bg-white rounded-4xl border border-slate-200 overflow-hidden shadow-sm animate-in fade-in duration-500">
@@ -20,7 +15,7 @@ const ManagePosts = ({ onEdit, onDelete, posts = [] }) => {
             type="text"
             placeholder="Search articles..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => onSearchChange(e.target.value)}
             className="w-full bg-slate-50 border-none rounded-xl pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-blue-500/20"
           />
         </div>
@@ -83,6 +78,18 @@ const ManagePosts = ({ onEdit, onDelete, posts = [] }) => {
           </tbody>
         </table>
       </div>
+      {hasMore && (
+        <div className="flex justify-center py-6">
+          <button
+            type="button"
+            onClick={loadMore}
+            disabled={loadingMore}
+            className="rounded-full bg-slate-900 text-white px-6 py-3 text-sm font-bold hover:bg-black transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loadingMore ? 'Loading…' : 'Load more posts'}
+          </button>
+        </div>
+      )}
     </div>
   );
 };
