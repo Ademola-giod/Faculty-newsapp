@@ -190,6 +190,46 @@ export const getPublicPosts = async (req, res) => {
 
 };
 
+// 2. GET ADMIN POSTS (paginated)
+export const getAdminPosts = async (req, res) => {
+  try {
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
+    const search = req.query.search?.trim();
+
+    const query = {};
+
+    if (search) {
+      const searchRegex = new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+      query.$or = [
+        { title: searchRegex },
+        { content: searchRegex },
+        { category: searchRegex },
+        { keywords: { $elemMatch: { $regex: searchRegex, $options: 'i' } } }
+      ];
+    }
+
+    const total = await Post.countDocuments(query);
+    const posts = await Post
+      .find(query)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.json({
+      posts,
+      page,
+      limit,
+      total,
+      hasMore: page * limit < total
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};
+
 // . GET SINGLE POST
 export const getPostById = async (req, res) => {
 

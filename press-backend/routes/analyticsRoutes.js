@@ -18,6 +18,4 @@ router.get('/categories', getCategoryStats);
 
 router.get('/daily-posts', getDailyPostStats);
 
-router.get('/dashboard', getDashboardAnalytics);
-
 export default router;

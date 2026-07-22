@@ -2,6 +2,7 @@ import express from 'express';
 import {
   createPost,
   getPublicPosts,
+  getAdminPosts,
   getPostById,
   deletePost,
   toggleLike,
@@ -26,8 +27,11 @@ const router = express.Router();
 
 // ───────────────── PUBLIC ROUTES ─────────────────
 
-// Get all posts
+// Get all public posts
 router.get('/', getPublicPosts);
+
+// Get admin post list with pagination
+router.get('/admin', checkJwt, attachUserInfo, isAdmin, getAdminPosts);
 
 // Get a single post by ID
 router.get('/:id', getPostById);
