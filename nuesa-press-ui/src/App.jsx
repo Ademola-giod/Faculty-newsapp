@@ -1,45 +1,81 @@
+import { useEffect, useState } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
-
+import axios from 'axios';
 import { Routes, Route, Navigate } from 'react-router-dom';
+  
 import Landing from './pages/Landing';
 import Home from './pages/Home';
 import AdminDashboard from './pages/AdminDashboard';
-import { ADMIN_EMAILS } from './utils/adminList';
 import PostPage from './pages/PostPage';
 
-function App() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+const API_BASE_URL =
+  import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
-  // 1. IMPROVED LOADING STATE
-  if (isLoading) {
+function App() {
+  const { isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
+
+  const [backendUser, setBackendUser] = useState(null);
+  const [checkingRole, setCheckingRole] = useState(true);
+
+  useEffect(() => {
+    const loadUser = async () => {
+      if (!isAuthenticated) {
+        setBackendUser(null);
+        setCheckingRole(false);
+        return;
+      }
+
+      try {
+        const token = await getAccessTokenSilently({
+          authorizationParams: {
+            audience: import.meta.env.VITE_AUTH0_AUDIENCE
+          }
+        });
+
+        const res = await axios.get(`${API_BASE_URL}/api/auth/me`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        setBackendUser(res.data);
+      } catch (err) {
+        console.error('Failed to load backend user:', err);
+        setBackendUser(null);
+      } finally {
+        setCheckingRole(false);
+      }
+    };
+
+    loadUser();
+  }, [isAuthenticated, getAccessTokenSilently]);
+
+  if (isLoading || checkingRole) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-[#F8FAFC]">
-        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-        <p className="mt-4 font-bold text-slate-400 uppercase text-[10px] tracking-[0.2em]">
-          Syncing Faculty Session...
-        </p>
+      <div className="h-screen flex items-center justify-center">
+        Loading...
       </div>
     );
   }
 
-  // Determine role based on the whitelist
-  const isAdmin = isAuthenticated && ADMIN_EMAILS.includes(user?.email);
+  const isAdmin =
+    backendUser?.role === 'ADMIN' || backendUser?.role === 'SUPER_ADMIN';
+
+
+    console.log("Authenticated:", isAuthenticated);
+    console.log("Loading:", isLoading);
+    console.log("Backend User:", backendUser);
+    console.log("Is Admin:", isAdmin);
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Logic: If not logged in -> Landing. 
-         If logged in AND admin -> Dashboard.
-         Otherwise -> Home (Student Feed).
-      */} 
-      <Routes>
-
+    <Routes>
       <Route
         path="/"
         element={
           !isAuthenticated ? (
             <Landing />
           ) : (
-            <Navigate to={isAdmin ? "/admin" : "/feed"} replace />
+            <Navigate to={isAdmin ? '/admin' : '/feed'} replace />
           )
         }
       />
@@ -47,32 +83,92 @@ function App() {
       <Route
         path="/feed"
         element={
-          isAuthenticated ? (
-            <Home />
-          ) : (
+          !isAuthenticated ? (
             <Navigate to="/" replace />
+          ) : isAdmin ? (
+            <Navigate to="/admin" replace />
+          ) : (
+            <Home backendUser={backendUser} />
           )
         }
       />
+
       <Route
         path="/admin"
-        element={
-          isAdmin ? (
-            <AdminDashboard />
-          ) : (
-            <Navigate to="/" replace />
-          )
-        }
+        element={isAdmin ? <AdminDashboard backendUser={backendUser}/> :
+         <Navigate to="/feed" replace />}
       />
 
-      <Route 
-      path="/post/:id"
-      element={<PostPage />}
-      />
-
-      </Routes>
-    </div>
+      <Route path="/post/:id" element={<PostPage />} />
+    </Routes>
   );
 }
 
 export default App;
+
+
+// import { useAuth0 } from '@auth0/auth0-react';
+// import { Routes, Route, Navigate } from 'react-router-dom';
+
+// import { useCurrentUser } from './hooks/useCurrentUser';
+
+// import Landing from './pages/Landing';
+// import Home from './pages/Home';
+// import AdminDashboard from './pages/AdminDashboard';
+// import PostPage from './pages/PostPage';
+
+// function App() {
+//   const { isAuthenticated, isLoading } = useAuth0();
+//   const { backendUser, loadingUser } = useCurrentUser();
+
+//   const isAdmin =
+//     backendUser?.role === 'ADMIN' ||
+//     backendUser?.role === 'SUPER_ADMIN';
+
+//   if (isLoading || (isAuthenticated && loadingUser)) {
+//     return (
+//       <div className="h-screen flex items-center justify-center bg-[#F8FAFC]">
+//         <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <Routes>
+//       <Route
+//         path="/"
+//         element={
+//           !isAuthenticated ? (
+//             <Landing />
+//           ) : (
+//             <Navigate to={isAdmin ? '/admin' : '/feed'} replace />
+//           )
+//         }
+//       />
+
+//       <Route
+//       path="/feed"
+//       element={
+//         !isAuthenticated ? (
+//           <Navigate to="/" replace />
+//         ) : isAdmin ? (
+//           <Navigate to="/admin" replace />
+//         ) : (
+//           <Home />
+//         )
+//       }
+//     />
+
+//       <Route
+//         path="/admin"
+//         element={
+//           isAdmin ? <AdminDashboard /> : <Navigate to="/feed" replace />
+//         }
+//       />
+
+//       <Route path="/post/:id" element={<PostPage />} />
+//     </Routes>
+//   );
+// }
+
+// export default App;

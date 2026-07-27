@@ -80,11 +80,11 @@ export const useFeedPosts = ({ getAccessTokenSilently }) => {
   const [likeCounts, setLikeCounts] = useState({});
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
-
-  const categories = useMemo(
-    () => ['Recommended', ...new Set(posts.map((post) => post.category).filter(Boolean))],
-    [posts]
-  );
+  const [categories, setCategories] = useState(["Recommended"]);
+  // const categories = useMemo(
+  //   () => ['Recommended', ...new Set(posts.map((post) => post.category).filter(Boolean))],
+  //   [posts]
+  // );
 
   const fetchPosts = useCallback(async ({ append = false, pageNumber = 1 } = {}) => {
     try {
@@ -134,12 +134,21 @@ export const useFeedPosts = ({ getAccessTokenSilently }) => {
     }
   }, [activeCategory, searchQuery]);
 
-  useEffect(() => {
-    setPosts([]);
-    setFilteredPosts([]);
-    setPage(1);
-    fetchPosts({ append: false, pageNumber: 1 });
-  }, [fetchPosts]);
+
+  // fetch categories
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/categories`);
+
+      setCategories([
+        "Recommended",
+        ...res.data.map(category => category.name)
+      ]);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
 
   const toggleLike = useCallback(
     async (postId, e) => {
@@ -201,6 +210,21 @@ export const useFeedPosts = ({ getAccessTokenSilently }) => {
     [bookmarkedPosts]
   );
 
+// useeffect fetch post
+
+  useEffect(() => {
+    setPosts([]);
+    setFilteredPosts([]);
+    setPage(1);
+    fetchPosts({ append: false, pageNumber: 1 });
+  }, [fetchPosts]);
+
+
+  // fetch categories on mount
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
+
   useEffect(() => {
     setFilteredPosts(posts);
   }, [posts]);
@@ -243,6 +267,8 @@ export const useFeedPosts = ({ getAccessTokenSilently }) => {
       removeSocketListeners();
     };
   }, [fetchPosts]);
+
+
 
   const showHero = activeCategory === 'Recommended' && !searchQuery && filteredPosts.length > 0;
 

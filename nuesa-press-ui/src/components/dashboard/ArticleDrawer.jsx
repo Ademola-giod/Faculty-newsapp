@@ -2,7 +2,7 @@ import { X, Image as ImageIcon, Trash2 } from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 
-const ArticleDrawer = ({ isOpen, onClose, formData, setFormData, onPublish, previewUrl, setSelectedFile, onClearDraft }) => {
+const ArticleDrawer = ({ isOpen, onClose, formData, setFormData, onPublish, previewUrl, setSelectedFile, onClearDraft, categories }) => {
   if (!isOpen) return null;
 
   const handleFileSelect = (e) => {
@@ -17,7 +17,7 @@ const ArticleDrawer = ({ isOpen, onClose, formData, setFormData, onPublish, prev
     }
 
     if (window.confirm("Clear all text and start over?")) {
-      const emptyForm = { title: '', category: 'Faculty News', keywords: '', content: '' };
+      const emptyForm = { title: '', category: '', keywords: '', content: '' };
       setFormData(emptyForm);
       localStorage.removeItem('nuesa_article_draft');
     }
@@ -49,15 +49,27 @@ const ArticleDrawer = ({ isOpen, onClose, formData, setFormData, onPublish, prev
           </div>
 
           <div className="grid grid-cols-2 gap-6">
-            <select 
-              className="bg-slate-50 border-none rounded-xl p-3 font-semibold text-sm"
-              value={formData.category}
-              onChange={(e) => setFormData({...formData, category: e.target.value})}
+            <select
+            className="bg-slate-50 border-none rounded-xl p-3 font-semibold text-sm"
+            value={formData.category}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                category: e.target.value,
+              })
+            }
             >
-              <option>Faculty News</option>
-              <option>Exam Updates</option>
-              <option>Student Life</option>
-            </select>
+            {categories.map((category) => (
+              <option
+                key={category}
+                value={category}
+              >
+                {category}
+              </option>
+            ))}
+          </select>
+
+              
             <input 
               className="bg-slate-50 border-none rounded-xl p-3 font-semibold text-sm" 
               placeholder="Keywords"

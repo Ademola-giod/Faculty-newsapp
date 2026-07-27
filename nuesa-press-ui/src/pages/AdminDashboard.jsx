@@ -13,9 +13,13 @@ import ArticleDrawer from '../components/dashboard/ArticleDrawer';
 import StudentDirectory from '../components/dashboard/StudentDirectory';
 import Home from './Home';
 
+// import { DEFAULT_CATEGORIES } from '../utils/category'
+
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
+
 const createEmptyFormData = () => ({ title: '', category: 'Faculty News', keywords: '', content: '' });
+
 
 const getSavedDraft = () => {
   if (typeof window === 'undefined') return createEmptyFormData();
@@ -52,7 +56,7 @@ const dataUrlToFile = (dataUrl, filename = 'draft-image.png') => {
 // console.log("ENV:", import.meta.env.VITE_BACKEND_URL);
 // console.log("API_BASE_URL:", API_BASE_URL);
 
-const AdminDashboard = () => {
+const AdminDashboard = ({ backendUser }) => {
   const { logout, getAccessTokenSilently, loginWithPopup, loginWithRedirect } = useAuth0();
   
   // --- 1. HOISTED STATE DECLARATIONS AT THE ABSOLUTE TOP ---
@@ -85,6 +89,11 @@ const AdminDashboard = () => {
   const [page, setPage] = useState(1);
   const [hasMorePosts, setHasMorePosts] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // category
+
+  const [ categories, setCategories] = useState([])
+
 
   // Draft persistence initializer state
   const [formData, setFormData] = useState(() => {
@@ -141,46 +150,18 @@ const AdminDashboard = () => {
     }
   };
 
-  useEffect(() => {
-    fetchPosts({ pageNumber: 1, append: false, search: searchTerm });
-  }, [searchTerm]);
 
-  // Collapse the sidebar completely on desktop if 'View Live Feed' is chosen
-  useEffect(() => {
-    if (activeTab === 'View Live Feed') {
-      setIsSidebarCollapsed(true);
-    } else {
-      setIsSidebarCollapsed(false);
+    const fetchCategories = async () => {
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/categories`);
+
+      setCategories(res.data.map(category => category.name));
+    } catch (err) {
+      console.error(err);
     }
-  }, [activeTab]);
+  };
 
-  // Synchronize draft memory buffer state on input change
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const draftPayload = {
-      ...formData,
-      imageDataUrl: draftImageDataUrl,
-      imageName: selectedFile?.name || null,
-    };
-
-    localStorage.setItem('nuesa_article_draft', JSON.stringify(draftPayload));
-  }, [formData, draftImageDataUrl, selectedFile]);
-
-  // Safely compute image preview URL once state mounts
-  useEffect(() => {
-    if (!selectedFile) {
-      setPreviewUrl(null);
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(selectedFile);
-    setPreviewUrl(objectUrl);
-
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [selectedFile]);
-
-  const handleFileSelect = (file) => {
+    const handleFileSelect = (file) => {
     if (!file) {
       setSelectedFile(null);
       setPreviewUrl(null);
@@ -211,6 +192,28 @@ const AdminDashboard = () => {
     }
   };
 
+  // handle category function
+
+  // const handleAddCategory = () => {
+  // const value = newCategory.trim();
+
+  // if (!value) return;
+
+  // // prevent duplicates
+  // const exists = categories.some(
+  //   c => c.toLowerCase() === value.toLowerCase()
+  // );
+
+  // if (exists) {
+  //   alert('Category already exists');
+  //   return;
+  // }
+
+  //   setCategories([...categories, value]);
+  //   setNewCategory('');
+  // };
+
+
   // --- 3. SECURE AUTHENTICATED PUBLISH DISPATCHER ---
   const handlePublish = async () => {
     const data = new FormData();
@@ -231,8 +234,10 @@ const AdminDashboard = () => {
           scope: 'openid profile email offline_access'
         }
       });
+
       console.log("Step 2: Token received:", token);
 
+      console.log("step 3: sending to backend..")
       const res = await axios.post(`${API_BASE_URL}/api/posts`, data, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` }
       });
@@ -259,6 +264,62 @@ const AdminDashboard = () => {
     { name: 'Students', icon: <Users size={18}/> },
     { name: 'View Live Feed', icon: <FileText size={18}/> }
   ];
+
+
+
+
+
+  useEffect(() => {
+    fetchPosts({ pageNumber: 1, append: false, search: searchTerm });
+  }, [searchTerm]);
+
+  // Collapse the sidebar completely on desktop if 'View Live Feed' is chosen
+  useEffect(() => {
+    if (activeTab === 'View Live Feed') {
+      setIsSidebarCollapsed(true);
+    } else {
+      setIsSidebarCollapsed(false);
+    }
+  }, [activeTab]);
+
+
+    // fetch categories 
+    useEffect(() => {
+    fetchCategories();
+  }, []);
+    
+
+  // useEffect(() => {
+  // localStorage.setItem('nuesa_categories', JSON.stringify(categories));
+  // }, [ categories]);
+
+
+  // Synchronize draft memory buffer state on input change
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const draftPayload = {
+      ...formData,
+      imageDataUrl: draftImageDataUrl,
+      imageName: selectedFile?.name || null,
+    };
+
+    localStorage.setItem('nuesa_article_draft', JSON.stringify(draftPayload));
+  }, [formData, draftImageDataUrl, selectedFile]);
+
+  // Safely compute image preview URL once state mounts
+  useEffect(() => {
+    if (!selectedFile) {
+      setPreviewUrl(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(selectedFile);
+    setPreviewUrl(objectUrl);
+
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [selectedFile]);
+
 
   return (
     <div className="flex min-h-screen bg-[#F8FAFC] w-full font-sans relative overflow-x-hidden">
@@ -345,13 +406,26 @@ const AdminDashboard = () => {
             {/* IMMERSIVE STREAM FLUID TEST FRAME */}
             {activeTab === 'View Live Feed' && (
               <div className="w-full min-h-screen bg-slate-50 animate-in fade-in duration-200">
-                <Home isAdminPreview={true} onBackToDashboard={() => setActiveTab('Dashboard')} />
+                <Home 
+                 backendUser={backendUser}
+                isAdminPreview={true} onBackToDashboard={() => setActiveTab('Dashboard')} />
               </div>
             )}
         </div>
       </main>
 
-      <ArticleDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} formData={formData} setFormData={setFormData} onPublish={handlePublish} previewUrl={previewUrl} setSelectedFile={handleFileSelect} onClearDraft={clearDraft} />
+      <ArticleDrawer isOpen={isDrawerOpen} 
+      onClose={() => setIsDrawerOpen(false)} 
+      formData={formData} 
+      setFormData={setFormData} 
+      onPublish={handlePublish} 
+      previewUrl={previewUrl} 
+      setSelectedFile={handleFileSelect} 
+      onClearDraft={clearDraft} 
+
+      categories={categories}
+      
+      />
     </div>
   );
 };

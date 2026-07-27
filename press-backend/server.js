@@ -13,6 +13,9 @@ import userRoutes from './routes/userRoutes.js';
 import auditRoutes from './routes/auditRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import adminRequestRoutes from './routes/adminRequestRoutes.js';
+import authRoutes from './routes/authRoutes.js'
+import categoryRoutes from './routes/categoryRoutes.js';
+import seedCategories from "./utils/seedCategories.js";
 
 // Load environment variables
 dotenv.config();
@@ -20,6 +23,7 @@ dotenv.config();
 //  connect db
 connectDB();
 
+await seedCategories()
 const app = express();
 const httpServer = createServer(app);
 
@@ -88,6 +92,8 @@ app.use('/api/posts', postsRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/admin-requests', adminRequestRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/categories', categoryRoutes);
 
 // 6. Start the Server
 const PORT = process.env.PORT || 5000;

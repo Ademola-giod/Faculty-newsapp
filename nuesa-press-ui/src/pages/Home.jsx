@@ -5,7 +5,6 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { Compass, Layers } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-import { ADMIN_EMAILS } from '../utils/adminList';
 import BottomNav from '../components/feed/BottomNav';
 import FeedHeader from '../components/feed/FeedHeader';
 import FeedCategories from '../components/feed/FeedCategories';
@@ -16,11 +15,15 @@ import ExploreSection from '../components/feed/ExploreSection';
 import SavedPostsSection from '../components/feed/SavedPostsSection';
 import { useFeedPosts } from '../hooks/useFeedPosts';
 
-// ─────────────────────────────────────────────────────────────────────────────
 
-const Home = () => {
+
+// ─────────────────────────────────────────────────────
+
+const Home = ({backendUser}) => {
   const { logout, user, getAccessTokenSilently } = useAuth0();
   const navigate = useNavigate();
+
+  // const categories = DEFAULT_CATEGORIES;
 
   const {
     loading,
@@ -51,10 +54,18 @@ const Home = () => {
     posts
   } = useFeedPosts({ getAccessTokenSilently });
 
-  const isAdmin = user && ADMIN_EMAILS.includes(user.email);
-  const handleOpenPost = (post) => navigate(`/post/${post._id}`);
 
-  // ─── loading ─────────────────────────────────────────────────────────────────
+  
+
+
+    const isAdmin =
+      backendUser?.role === 'ADMIN' ||
+      backendUser?.role === 'SUPER_ADMIN';
+  
+  const handleOpenPost = (post) => navigate(`/post/${post._id}`);
+  
+
+  // ─── loading 
   if (loading) return (
     <div className="h-screen bg-slate-100 flex flex-col items-center justify-center gap-3">
       <div className="w-10 h-10 border-4 border-blue-800 border-t-transparent rounded-full animate-spin" />
