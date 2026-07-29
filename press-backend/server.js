@@ -64,10 +64,7 @@ app.use(helmet()); // Protects headers
 app.use(morgan('dev')); // Logs requests in terminal
 app.use(express.json()); // Parses JSON bodies
 
-// 3. Database Connection
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ Faculty Press Database Connected"))
-  .catch((err) => console.error("❌ DB Connection Error:", err));
+
 
 app.use('/api/analytics', analyticsRoutes);
 
