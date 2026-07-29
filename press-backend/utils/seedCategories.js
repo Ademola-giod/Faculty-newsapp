@@ -1,4 +1,4 @@
-import Category from "../models/Category.js";
+import Category from "../models/category.js";
 import { DEFAULT_CATEGORIES } from "../utils/defaultCategory.js";
 
 const seedCategories = async () => {
