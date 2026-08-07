@@ -1,6 +1,6 @@
 import  { useState, useEffect } from 'react';
 import axios from 'axios';
-import API from '../api/api';
+// import API from '../api/api';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getTokenWithFallback } from '../utils/authHelpers';
 import { LayoutDashboard, FileText, BarChart3, Users, LogOut, Plus, X, Menu } from 'lucide-react';
@@ -18,7 +18,7 @@ import Home from './Home';
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 
-const createEmptyFormData = () => ({ title: '', category: 'Faculty News', keywords: '', content: '' });
+const createEmptyFormData = () => ({ title: '', category: 'category', keywords: '', content: '' });
 
 
 const getSavedDraft = () => {
@@ -83,8 +83,8 @@ const AdminDashboard = ({ backendUser }) => {
   });
   
   // Live database communication data states
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState([]); 
+  const [loading, setLoading] = useState(true);  //checking ..
   const [loadingMorePosts, setLoadingMorePosts] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMorePosts, setHasMorePosts] = useState(false);
