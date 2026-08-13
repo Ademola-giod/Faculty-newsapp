@@ -23,6 +23,11 @@ export const attachUserInfo = async (req, res, next) => {
   try {
     const auth0Id = req.auth?.payload?.sub;
 
+
+    // get the unique id and email 
+    console.log("Auth0 ID:", auth0Id);
+    console.log("Token email:", req.auth?.payload?.email);
+
     if (!auth0Id) {
       return res.status(401).json({
         message: 'Invalid Auth0 token (missing sub)'
@@ -63,6 +68,9 @@ export const attachUserInfo = async (req, res, next) => {
 
     // Find existing user
     let user = await User.findOne({ auth0Id });
+
+    // checking if the userauth0Id exist || duplicate id 
+    console.log("User found by auth0Id:", user);
 
     if (!user) {
       user = await User.create({
