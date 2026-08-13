@@ -109,7 +109,7 @@ export const attachUserInfo = async (req, res, next) => {
   // }
 
 
-  } catch (err) {
+  catch (err) {
   console.error('========== AUTH MIDDLEWARE ERROR ==========');
   console.error('Message:', err.message);
   console.error('Status:', err.response?.status);
@@ -122,4 +122,5 @@ export const attachUserInfo = async (req, res, next) => {
     error: err.message
   });
 }
+
 };
