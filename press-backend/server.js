@@ -24,6 +24,8 @@ dotenv.config();
 connectDB();
 
 await seedCategories()
+
+
 const app = express();
 const httpServer = createServer(app);
 

@@ -1,4 +1,3 @@
-
 import { auth } from 'express-oauth2-jwt-bearer';
 import 'dotenv/config';
 import axios from 'axios';
@@ -54,7 +53,6 @@ export const attachUserInfo = async (req, res, next) => {
         message: 'Auth0 userinfo missing email'
       });
     }
-
   
 
     
@@ -76,7 +74,7 @@ export const attachUserInfo = async (req, res, next) => {
         isActiveStaff: shouldBeActive
       });
 
-      console.log('🆕 New user created:', normalizedEmail, newRole);
+      console.log(' New user created:', normalizedEmail, newRole);
 
     } else {
       const changed =
@@ -95,17 +93,33 @@ export const attachUserInfo = async (req, res, next) => {
 
         await user.save();
 
-        console.log('🔄 User updated:', normalizedEmail, newRole);
+        console.log(' User updated:', normalizedEmail, newRole);
       }
     }
     req.user = user;
     next();
 
-  } catch (err) {
-    console.error(' AUTH MIDDLEWARE ERROR:', err.response?.data || err.message);
+  } 
+  // catch (err) {
+  //   console.error(' AUTH MIDDLEWARE ERROR:', err.response?.data || err.message);
 
-    res.status(500).json({
-      message: 'Authentication sync failed'
-    });
-  }
+  //   res.status(500).json({
+  //     message: 'Authentication sync failed'
+  //   });
+  // }
+
+
+  } catch (err) {
+  console.error('========== AUTH MIDDLEWARE ERROR ==========');
+  console.error('Message:', err.message);
+  console.error('Status:', err.response?.status);
+  console.error('Response:', err.response?.data);
+  console.error('Stack:', err.stack);
+  console.error('============================================');
+
+  res.status(500).json({
+    message: 'Authentication sync failed',
+    error: err.message
+  });
+}
 };

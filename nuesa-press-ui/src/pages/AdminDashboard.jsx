@@ -238,6 +238,8 @@ const AdminDashboard = ({ backendUser }) => {
       console.log("Step 2: Token received:", token);
 
       console.log("step 3: sending to backend..")
+
+      
       const res = await axios.post(`${API_BASE_URL}/api/posts`, data, {
         headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` }
       });
