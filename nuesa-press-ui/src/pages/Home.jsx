@@ -17,7 +17,6 @@ import { useFeedPosts } from '../hooks/useFeedPosts';
 
 
 
-// ─────────────────────────────────────────────────────
 
 const Home = ({backendUser}) => {
   const { logout, user, getAccessTokenSilently } = useAuth0();

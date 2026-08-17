@@ -81,6 +81,8 @@ export const useFeedPosts = ({ getAccessTokenSilently }) => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [categories, setCategories] = useState(["Recommended"]);
+
+
   // const categories = useMemo(
   //   () => ['Recommended', ...new Set(posts.map((post) => post.category).filter(Boolean))],
   //   [posts]
@@ -150,6 +152,7 @@ export const useFeedPosts = ({ getAccessTokenSilently }) => {
     }
   }, []);
 
+  // toggle like ..
   const toggleLike = useCallback(
     async (postId, e) => {
       e?.stopPropagation();
@@ -199,6 +202,9 @@ export const useFeedPosts = ({ getAccessTokenSilently }) => {
     [getAccessTokenSilently, likedPosts]
   );
 
+
+  // bookmark section 
+  
   const toggleBookmark = useCallback(
     (postId, e) => {
       e?.stopPropagation();
