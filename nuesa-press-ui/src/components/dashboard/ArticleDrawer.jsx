@@ -2,7 +2,19 @@ import { X, Image as ImageIcon, Trash2 } from 'lucide-react';
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 
-const ArticleDrawer = ({ isOpen, onClose, formData, setFormData, onPublish, previewUrl, setSelectedFile, onClearDraft, categories }) => {
+const ArticleDrawer = ({ 
+  isOpen, 
+  editingPost,
+  onClose, 
+  formData, 
+  setFormData, 
+  onPublish, 
+  previewUrl, 
+  setSelectedFile, 
+  onClearDraft, 
+  categories 
+
+}) => {
   if (!isOpen) return null;
 
   const handleFileSelect = (e) => {
@@ -30,7 +42,11 @@ const ArticleDrawer = ({ isOpen, onClose, formData, setFormData, onPublish, prev
         
         <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
           <div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">New Article</h2>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+            {editingPost ? 'Edit Article' : 'New Article'}
+            </h2>
+
+
             <p className="text-slate-500 text-sm font-medium">Your progress is automatically saved locally.</p>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors"><X size={24} /></button>
@@ -112,7 +128,7 @@ const ArticleDrawer = ({ isOpen, onClose, formData, setFormData, onPublish, prev
             onClick={onPublish} 
             className="flex-1 bg-slate-900 text-white py-4 rounded-2xl font-bold shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2 hover:bg-black"
           >
-            Publish Article
+            {editingPost ? 'Save Changes' : 'Publish Article'}
           </button>
         </div>
       </section>

@@ -18,7 +18,10 @@ import Home from './Home';
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 
 
-const createEmptyFormData = () => ({ title: '', category: 'category', keywords: '', content: '' });
+const createEmptyFormData = () => ({ title: '',
+category: '', 
+keywords: '', 
+content: '' });
 
 
 const getSavedDraft = () => {
@@ -100,6 +103,9 @@ const AdminDashboard = ({ backendUser }) => {
     const savedDraft = getSavedDraft();
     return { ...createEmptyFormData(), ...savedDraft };
   });
+
+  //
+  const [editingPost, setEditingPost] = useState(null);
 
   // --- 2. RUN LIFECYCLE HOOKS SECURELY ---
   
@@ -215,16 +221,171 @@ const AdminDashboard = ({ backendUser }) => {
 
 
   // --- 3. SECURE AUTHENTICATED PUBLISH DISPATCHER ---
+
   const handlePublish = async () => {
-    const data = new FormData();
-    data.append('title', formData.title);
-    data.append('category', formData.category);
-    data.append('content', formData.content);
-    data.append('keywords', formData.keywords);
-    if (selectedFile) data.append('image', selectedFile);
+  const data = new FormData();
+
+  data.append('title', formData.title);
+  data.append('category', formData.category);
+  data.append('content', formData.content);
+  data.append('keywords', formData.keywords || '');
+
+  // Only send image if admin selected a NEW image
+  if (selectedFile) {
+    data.append('image', selectedFile);
+  }
+
+  try {
+    const token = await getTokenWithFallback({
+      getAccessTokenSilently,
+      loginWithPopup,
+      loginWithRedirect,
+      authorizationParams: {
+        audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+        scope: 'openid profile email offline_access'
+      }
+    });
+
+    let res;
+
+    // ==========================================
+    // EDIT EXISTING POST
+    // ==========================================
+    if (editingPost?._id) {
+      res = await axios.put(
+        `${API_BASE_URL}/api/posts/${editingPost._id}`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const updatedPost = res.data?.post;
+
+      if (updatedPost) {
+        // Replace the OLD post with the UPDATED post
+        setPosts(prevPosts =>
+          prevPosts.map(post =>
+            post._id === updatedPost._id
+              ? updatedPost
+              : post
+          )
+        );
+      }
+
+      alert('Article updated successfully!');
+
+    } else {
+
+      // CREATE NEW POST
+      res = await axios.post(
+        `${API_BASE_URL}/api/posts`,
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      if (res.status === 201) {
+        alert('News is LIVE!');
+      }
+    }
+
+    // RESET FORM
+
+    setIsDrawerOpen(false);
+
+    setFormData(createEmptyFormData());
+
+    setEditingPost(null);
+
+    setSelectedFile(null);
+
+    setPreviewUrl(null);
+
+    setDraftImageDataUrl(null);
+
+    localStorage.removeItem('nuesa_article_draft');
+
+    // Refresh the first page to keep pagination/search consistent
+    await fetchPosts({
+      pageNumber: 1,
+      append: false,
+      search: searchTerm
+    });
+
+  } catch (err) {
+    console.error(
+      'Post save/update error:',
+      err.response?.data || err
+    );
+
+    alert(
+      err.response?.data?.message ||
+      'Something went wrong while saving the article.'
+    );
+  }
+  };
+
+  // const handlePublish = async () => {
+  //   const data = new FormData();
+  //   data.append('title', formData.title);
+  //   data.append('category', formData.category);
+  //   data.append('content', formData.content);
+  //   data.append('keywords', formData.keywords);
+  //   if (selectedFile) data.append('image', selectedFile);
+
+  //   try {
+  //     console.log("Step 1: About to request token...");
+  //     const token = await getTokenWithFallback({
+  //       getAccessTokenSilently,
+  //       loginWithPopup,
+  //       loginWithRedirect,
+  //       authorizationParams: {
+  //         audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+  //         scope: 'openid profile email offline_access'
+  //       }
+  //     });
+
+  //     console.log("Step 2: Token received:", token);
+
+  //     console.log("step 3: sending to backend..")
+
+      
+  //     const res = await axios.post(`${API_BASE_URL}/api/posts`, data, {
+  //       headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` }
+  //     });
+  //     if (res.status === 201) {
+  //       alert("News is LIVE!");
+  //       setIsDrawerOpen(false);
+  //       setFormData(createEmptyFormData());
+  //       setSelectedFile(null);
+  //       setPreviewUrl(null);
+  //       setDraftImageDataUrl(null);
+  //       localStorage.removeItem('nuesa_article_draft');
+  //       fetchPosts(); 
+  //     }
+  //   } catch (err) {
+  //     console.error("Publishing token routing error breakdown:", err);
+  //     alert("Verification issue. Please authenticate your security rules.");
+  //   }
+  // };
+
+
+    const handleDelete = async (postId) => {
+    if (!postId) return;
+
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this article? This action cannot be undone.'
+    );
+
+    if (!confirmed) return;
 
     try {
-      console.log("Step 1: About to request token...");
       const token = await getTokenWithFallback({
         getAccessTokenSilently,
         loginWithPopup,
@@ -235,30 +396,37 @@ const AdminDashboard = ({ backendUser }) => {
         }
       });
 
-      console.log("Step 2: Token received:", token);
+      await axios.delete(
+        `${API_BASE_URL}/api/posts/${postId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
 
-      console.log("step 3: sending to backend..")
+      // Remove it immediately from the frontend
+      setPosts(prevPosts =>
+        prevPosts.filter(post => post._id !== postId)
+      );
 
-      
-      const res = await axios.post(`${API_BASE_URL}/api/posts`, data, {
-        headers: { 'Content-Type': 'multipart/form-data', Authorization: `Bearer ${token}` }
-      });
-      if (res.status === 201) {
-        alert("News is LIVE!");
-        setIsDrawerOpen(false);
-        setFormData(createEmptyFormData());
-        setSelectedFile(null);
-        setPreviewUrl(null);
-        setDraftImageDataUrl(null);
-        localStorage.removeItem('nuesa_article_draft');
-        fetchPosts(); 
-      }
+      alert('Article deleted successfully!');
+
     } catch (err) {
-      console.error("Publishing token routing error breakdown:", err);
-      alert("Verification issue. Please authenticate your security rules.");
+      console.error(
+        'Delete post error:',
+        err.response?.data || err
+      );
+
+      alert(
+        err.response?.data?.message ||
+        'Failed to delete article.'
+      );
     }
   };
 
+
+  //menu items for sidebar navigation
   const menuItems = [
     { name: 'Dashboard', icon: <LayoutDashboard size={18}/> },
     { name: 'Manage Posts', icon: <FileText size={18}/> },
@@ -310,17 +478,25 @@ const AdminDashboard = ({ backendUser }) => {
   }, [formData, draftImageDataUrl, selectedFile]);
 
   // Safely compute image preview URL once state mounts
-  useEffect(() => {
-    if (!selectedFile) {
+ useEffect(() => {
+  if (!selectedFile) {
+    // If we're editing an existing post,
+    // keep its existing image preview.
+    if (editingPost?.image?.url) {
+      setPreviewUrl(editingPost.image.url);
+    } else {
       setPreviewUrl(null);
-      return;
     }
 
-    const objectUrl = URL.createObjectURL(selectedFile);
-    setPreviewUrl(objectUrl);
+    return;
+  }
 
-    return () => URL.revokeObjectURL(objectUrl);
-  }, [selectedFile]);
+  const objectUrl = URL.createObjectURL(selectedFile);
+
+  setPreviewUrl(objectUrl);
+
+  return () => URL.revokeObjectURL(objectUrl);
+}, [selectedFile, editingPost]);
 
 
   return (
@@ -381,13 +557,19 @@ const AdminDashboard = ({ backendUser }) => {
               <h2 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">{activeTab}</h2>
               <p className="text-slate-500 font-medium mt-1 uppercase text-xs tracking-widest italic">Faculty of Education • UI</p>
             </div>
-            <button onClick={() => { setFormData(createEmptyFormData()); setIsDrawerOpen(true); }} className="w-full md:w-auto bg-slate-900 hover:bg-black text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-xl transition-all"><Plus size={18}/> New Article</button>
+
+            <button 
+            onClick={() => { 
+              setEditingPost(null);
+              setFormData(createEmptyFormData()); setIsDrawerOpen(true); }} className="w-full md:w-auto bg-slate-900 hover:bg-black text-white px-6 py-3 rounded-xl font-bold flex items-center justify-center gap-2 shadow-xl transition-all"><Plus size={18}/> New Article</button>
           </header>
         )}
 
         <div className="w-full min-h-screen">
             {activeTab === 'Dashboard' && <DashboardOverview />}
             {activeTab === 'Manage Posts' && (
+
+              //manage posts component
               <ManagePosts
                 posts={posts}
                 searchQuery={searchTerm}
@@ -398,10 +580,43 @@ const AdminDashboard = ({ backendUser }) => {
                   await fetchPosts({ pageNumber: page + 1, append: true, search: searchTerm });
                 }}
                 loadingMore={loadingMorePosts}
-                onEdit={(post) => { setFormData(post); setIsDrawerOpen(true); }}
-                onDelete={() => {}}
+
+                // onEdit={(post) => { setFormData(post); setIsDrawerOpen(true); }}
+                onEdit={(post) => {
+                setEditingPost(post);
+
+                setFormData({
+                  title: post.title || '',
+                  category: post.category || '',
+                  keywords: Array.isArray(post.keywords)
+                    ? post.keywords.join(', ')
+                    : post.keywords || '',
+                  content: post.content || '',
+                });
+
+                // Editing an existing post means we're NOT selecting
+                // a new image yet.
+                setSelectedFile(null);
+
+                // Show the existing Cloudinary image in the drawer
+                setPreviewUrl(post.image?.url || null);
+
+                setDraftImageDataUrl(null);
+
+                localStorage.removeItem('nuesa_article_draft');
+
+                setIsDrawerOpen(true);
+              }}
+
+              //delete post handler
+                onDelete={handleDelete}
               />
             )}
+
+
+
+          {/* analytics view component */}
+          
             {activeTab === 'Analytics' && <AnalyticsView />}
             {activeTab === 'Students' && <StudentDirectory />}
 
@@ -413,10 +628,15 @@ const AdminDashboard = ({ backendUser }) => {
                 isAdminPreview={true} onBackToDashboard={() => setActiveTab('Dashboard')} />
               </div>
             )}
-        </div>
-      </main>
+          </div>
+     </main>
 
-      <ArticleDrawer isOpen={isDrawerOpen} 
+
+     // article drawer component
+
+      <ArticleDrawer 
+      isOpen={isDrawerOpen} 
+      editingPost={editingPost}
       onClose={() => setIsDrawerOpen(false)} 
       formData={formData} 
       setFormData={setFormData} 
