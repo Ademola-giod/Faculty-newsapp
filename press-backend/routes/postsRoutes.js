@@ -1,6 +1,7 @@
 import express from 'express';
 import {
   createPost,
+  updatePost,
   getPublicPosts,
   getAdminPosts,
   getPostById,
@@ -25,7 +26,7 @@ import { upload } from '../utils/cloudinary.js';
 const router = express.Router();
 
 
-// ───────────────── PUBLIC ROUTES ─────────────────
+// ────────── PUBLIC ROUTES ───────────
 
 // Get all public posts
 router.get('/', getPublicPosts);
@@ -72,6 +73,17 @@ router.post(
   isAdmin,
   upload.single('image'),
   createPost
+);
+
+ 
+// Update existing post
+router.put(
+  '/:id',
+  checkJwt,
+  attachUserInfo,
+  isAdmin,
+  upload.single('image'),
+  updatePost
 );
 
 // Delete post

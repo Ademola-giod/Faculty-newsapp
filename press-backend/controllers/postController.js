@@ -321,13 +321,21 @@ export const deletePost = async (req, res) => {
       });
     }
 
-    const isAuthor =
-      post.authorId.toString() === req.user._id.toString();
+    // const isAuthor =
+    //   post.authorId.toString() === req.user._id.toString();
 
-    const isEiC =
-      req.user.role === 'SUPER_ADMIN';
+    // const isEiC =
+    //   req.user.role === 'SUPER_ADMIN';
 
-    if (!isAuthor && !isEiC) {
+    // if (!isAuthor && !isEiC) {
+    //   return res.status(403).json({
+    //     message: 'Unauthorized deletion attempt.'
+    //   });
+    // }
+
+    // any NUESA admin can delete any post 
+    if(req.user.role !== 'ADMIN') {
+
       return res.status(403).json({
         message: 'Unauthorized deletion attempt.'
       });
