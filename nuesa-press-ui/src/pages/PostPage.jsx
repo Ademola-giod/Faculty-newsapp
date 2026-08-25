@@ -144,28 +144,62 @@ const PostPage = () => {
     saveLS(LS_BOOKMARKS, next);
   };
 
-  const sharePost = async () => {
-    if (!post) return;
+  // const sharePost = async () => {
+  //   if (!post) return;
 
-    const url = `${window.location.origin}/post/${post._id}`;
-    const data = { title: post.title, text: stripHtml(post.content).slice(0, 120), url };
+  //   const url = `${window.location.origin}/post/${post._id}`;
+  //   const data = { title: post.title, text: stripHtml(post.content).slice(0, 120), url };
 
-    if (navigator.share) {
-      try {
-        await navigator.share(data);
-        return;
-      } catch {
-        // Fallback
-      }
-    }
+  //   if (navigator.share) {
+  //     try {
+  //       await navigator.share(data);
+  //       return;
+  //     } catch {
+  //       // Fallback
+  //     }
+  //   }
 
+  //   try {
+  //     await navigator.clipboard.writeText(url);
+  //     alert('Link copied to clipboard!');
+  //   } catch {
+  //     prompt('Copy this link:', url);
+  //   }
+  // };
+
+  const sharePost = async (post) => {
+  const url = `${window.location.origin}/post/${post._id}`;
+  const excerpt = stripHtml(post.content).slice(0, 200).trim();
+  const category = post.category ? post.category.toUpperCase() : '';
+
+  const message =
+`*${category}: ${post.title}*
+
+_${excerpt}…_
+
+${url}
+
+For more information, kindly join NUESA Press fan page:
+https://chat.whatsapp.com/FGCScEHL0m44SjJTdSTU
+
+*©️NUESA PRESS UI, POWER THROUGH THE PEN*`;
+
+  if (navigator.share) {
     try {
-      await navigator.clipboard.writeText(url);
-      alert('Link copied to clipboard!');
+      await navigator.share({ text: message });
+      return;
     } catch {
-      prompt('Copy this link:', url);
+      // fall back to clipboard
     }
-  };
+  }
+
+  try {
+    await navigator.clipboard.writeText(message);
+    alert('Post copied to clipboard!');
+  } catch {
+    prompt('Copy this message:', message);
+  }
+};
 
   if (loading) {
     return (
@@ -212,7 +246,7 @@ const PostPage = () => {
         </div>
       </div>
 
-      <article className="max-w-md mx-auto px-4 pt-4 space-y-4">
+      <article className="max-w-md mx-auto px-4 pt-4 space-y-4 overflow-hidden">
         {/* Title & Metadata */}
         <div>
           <h1 className="text-xl font-bold text-slate-900 leading-snug">{post.title}</h1>
@@ -258,7 +292,7 @@ const PostPage = () => {
 
         {/* Article Body */}
         <div
-          className="prose prose-slate text-sm leading-relaxed text-slate-600 pt-2 prose-headings:font-bold prose-headings:text-slate-900 prose-a:text-blue-600 prose-img:rounded-xl"
+          className="prose prose-slate text-sm leading-relaxed text-slate-600 pt-2 prose-headings:font-bold prose-headings:text-slate-900 prose-a:text-blue-600 prose-img:rounded-xl max-w-full min-w-0 wrap-break-word overflow-wrap-anywhere"
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
       </article>

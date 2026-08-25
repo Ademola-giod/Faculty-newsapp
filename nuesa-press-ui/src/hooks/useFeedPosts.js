@@ -58,29 +58,63 @@ const relTime = (date) => {
 // SHARE POST
 // ==========================================
 
+// const sharePost = async (post) => {
+//   const url = `${window.location.origin}/post/${post._id}`;
+
+//   const data = {
+//     title: post.title,
+//     text: stripHtml(post.content).slice(0, 120),
+//     url,
+//   };
+
+//   if (navigator.share) {
+//     try {
+//       await navigator.share(data);
+//       return;
+//     } catch {
+//       // User cancelled or browser failed.
+//     }
+//   }
+
+//   try {
+//     await navigator.clipboard.writeText(url);
+//     alert("Link copied to clipboard!");
+//   } catch {
+//     prompt("Copy this link:", url);
+//   }
+// };
+
 const sharePost = async (post) => {
   const url = `${window.location.origin}/post/${post._id}`;
+  const excerpt = stripHtml(post.content).slice(0, 200).trim();
+  const category = post.category ? post.category.toUpperCase() : '';
 
-  const data = {
-    title: post.title,
-    text: stripHtml(post.content).slice(0, 120),
-    url,
-  };
+  const message =
+`*${category}: ${post.title}*
+
+_${excerpt}…_
+
+${url}
+
+For more information, kindly join NUESA Press fan page:
+https://chat.whatsapp.com/FGCScEHL0m44SjJTdSTU
+
+*©️NUESA PRESS UI, POWER THROUGH THE PEN*`;
 
   if (navigator.share) {
     try {
-      await navigator.share(data);
+      await navigator.share({ text: message });
       return;
     } catch {
-      // User cancelled or browser failed.
+      // fall back to clipboard
     }
   }
 
   try {
-    await navigator.clipboard.writeText(url);
-    alert("Link copied to clipboard!");
+    await navigator.clipboard.writeText(message);
+    alert('Post copied to clipboard!');
   } catch {
-    prompt("Copy this link:", url);
+    prompt('Copy this message:', message);
   }
 };
 
