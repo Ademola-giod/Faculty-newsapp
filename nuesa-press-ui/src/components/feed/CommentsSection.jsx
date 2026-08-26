@@ -9,10 +9,9 @@ const API_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000';
 const CommentsSection = ({
   expandedPost,
   user,
-  getAccessTokenSilently
 }) => {
 
-  const { loginWithPopup, loginWithRedirect } = useAuth0();
+  const { getAccessTokenSilently, loginWithPopup, loginWithRedirect } = useAuth0();
 
   const [comments, setComments] = useState([]);
   const [commentText, setCommentText] = useState('');
@@ -47,6 +46,8 @@ const CommentsSection = ({
     try {
       setSubmitting(true);
 
+      console.log(' getting auth0 token for comment submission');
+
       const token = await getTokenWithFallback({
         getAccessTokenSilently,
         loginWithPopup,
@@ -56,6 +57,11 @@ const CommentsSection = ({
           scope: 'openid profile email offline_access'
         }
       });
+
+      console.log('auth0 token recieved for comment submission:', token);
+
+      console.log('sending comment to backend:');
+
 
       const res = await axios.post(
         `${API_URL}/api/posts/${expandedPost._id}/comments`,
@@ -73,14 +79,23 @@ const CommentsSection = ({
       setCommentText('');
 
     } catch (err) {
-      console.error('Comment error:', err);
+      console.error('Comment error:', err.response?.data || err.message || err);
+
+      alert(
+        err.response?.data?.message ||
+        err.message ||
+        'An error occurred while submitting the comment.'
+      );
+
     } finally {
       setSubmitting(false);
     }
   }, [
     commentText,
     expandedPost,
-    getAccessTokenSilently
+    getAccessTokenSilently,
+    loginWithPopup,
+    loginWithRedirect
   ]);
 
   useEffect(() => {

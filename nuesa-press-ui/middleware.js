@@ -25,7 +25,19 @@ export default async function middleware(request) {
     const description = escapeHtml(
       post.content.replace(/<[^>]*>?/gm, '').slice(0, 150)
     );
-    const image = post.image?.url || `${url.origin}/default-og-image.jpg`;
+    
+
+    const buildOgImage = (cloudinaryUrl, fallback) => {
+  if (!cloudinaryUrl) return fallback;
+
+  // insert Cloudinary transform params right after '/upload/'
+  return cloudinaryUrl.replace(
+    '/upload/',
+    '/upload/w_1200,h_630,c_fill,g_auto,f_jpg,q_auto/'
+  );
+};
+
+const image = buildOgImage(post.image?.url, `${url.origin}/default-og-image.jpg`);
 
     const html = `<!DOCTYPE html>
 <html>
