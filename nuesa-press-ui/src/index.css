@@ -94,7 +94,7 @@ button {
   background:
     radial-gradient(
       circle at 10% 0%,
-      rgba(21, 94, 239, 0.06),
+      rgba(240, 241, 243, 0.06),
       transparent 28rem
     ),
     var(--nuesa-background);

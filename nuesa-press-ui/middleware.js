@@ -62,6 +62,10 @@ const image = buildOgImage(post.image?.url, `${url.origin}/default-og-image.jpg`
 
 function escapeHtml(str = '') {
   return str.replace(/[&<>"']/g, (c) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    '&': '&amp;', 
+    '<': '&lt;', 
+    '>': '&gt;', 
+    '"': '&quot;', 
+    "'": '&#39;'
   })[c]);
 }

@@ -121,6 +121,12 @@ const FeedHeader = ({
     setSearchQuery('');
   };
 
+  const handleSearchKeyDown = (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+  }
+};
+
   return (
     <>
       {/* =========================
@@ -395,6 +401,7 @@ const FeedHeader = ({
                 setSearchQuery(e.target.value);
                 setActiveMenu('feed');
               }}
+               onKeyDown={handleSearchKeyDown}
               className="
                 w-full
                 bg-slate-100/80

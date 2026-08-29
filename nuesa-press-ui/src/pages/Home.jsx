@@ -155,11 +155,6 @@ const Home = ({ backendUser }) => {
 
       {activeMenu === 'feed' && (
         <>
-          <FeedCategories
-            categories={categories}
-            activeCategory={activeCategory}
-            setActiveCategory={setActiveCategory}
-          />
 
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
@@ -208,6 +203,12 @@ const Home = ({ backendUser }) => {
                   featuredPosts={featuredPosts}
                   onExpand={handleOpenPost}
                   relTime={relTime}
+                />
+
+                <FeedCategories
+                  categories={categories}
+                  activeCategory={activeCategory}
+                  setActiveCategory={setActiveCategory}
                 />
 
               </motion.section>

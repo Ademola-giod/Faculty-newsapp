@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getTokenWithFallback } from '../utils/authHelpers';
 import { LayoutDashboard, FileText, BarChart3, Users, LogOut, Plus, X, Menu } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 // Modular components
 import DashboardOverview from '../components/dashboard/DashboardOverview';
@@ -68,6 +69,9 @@ const AdminDashboard = ({ backendUser }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false); 
   
+  
+
+
   // File upload and image previews states
   const [selectedFile, setSelectedFile] = useState(() => {
     const savedDraft = getSavedDraft();
@@ -92,6 +96,8 @@ const AdminDashboard = ({ backendUser }) => {
   const [page, setPage] = useState(1);
   const [hasMorePosts, setHasMorePosts] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  const [isPublishing, setIsPublishing] = useState(false);
 
   // category
 
@@ -223,6 +229,9 @@ const AdminDashboard = ({ backendUser }) => {
   // --- 3. SECURE AUTHENTICATED PUBLISH DISPATCHER ---
 
   const handlePublish = async () => {
+
+    setIsPublishing(true);n 
+
   const data = new FormData();
 
   data.append('title', formData.title);
@@ -275,7 +284,7 @@ const AdminDashboard = ({ backendUser }) => {
         );
       }
 
-      alert('Article updated successfully!');
+      toast.success('Article updated successfully!');
 
     } else {
 
@@ -291,7 +300,7 @@ const AdminDashboard = ({ backendUser }) => {
       );
 
       if (res.status === 201) {
-        alert('News is LIVE!');
+        toast.success('News is LIVE!');
       }
     }
 
@@ -324,7 +333,7 @@ const AdminDashboard = ({ backendUser }) => {
       err.response?.data || err
     );
 
-    alert(
+    toast.error(
       err.response?.data?.message ||
       'Something went wrong while saving the article.'
     );
@@ -410,7 +419,7 @@ const AdminDashboard = ({ backendUser }) => {
         prevPosts.filter(post => post._id !== postId)
       );
 
-      alert('Article deleted successfully!');
+      toast.success('Article deleted successfully!');
 
     } catch (err) {
       console.error(
@@ -418,7 +427,7 @@ const AdminDashboard = ({ backendUser }) => {
         err.response?.data || err
       );
 
-      alert(
+      toast.error(
         err.response?.data?.message ||
         'Failed to delete article.'
       );
@@ -641,6 +650,7 @@ const AdminDashboard = ({ backendUser }) => {
       formData={formData} 
       setFormData={setFormData} 
       onPublish={handlePublish} 
+      isPublishing={isPublishing}
       previewUrl={previewUrl} 
       setSelectedFile={handleFileSelect} 
       onClearDraft={clearDraft} 

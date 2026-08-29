@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
-
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { useCurrentUser } from "./hooks/useCurrentUser";
 
 import Landing from "./pages/Landing";
@@ -35,6 +36,7 @@ function App() {
 
   return (
 
+    <>
     <Routes>
 
       <Route
@@ -74,6 +76,20 @@ function App() {
       />
 
     </Routes>
+
+  
+      <ToastContainer
+        position="top-right"
+        autoClose={4000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        theme="light"
+      />
+    </>
+
+    
 
   );
 }

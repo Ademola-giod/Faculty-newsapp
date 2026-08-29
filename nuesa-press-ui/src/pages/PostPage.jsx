@@ -12,6 +12,8 @@ const LS_BOOKMARKS = 'nuesa_bookmarked_posts';
 
 const stripHtml = (html = '') =>
   html
+   .replace(/&nbsp;/gi, ' ')
+    .replace(/\u00A0/g, ' ')
     .replace(/<[^>]*>?/gm, '')
     .replace(/&nbsp;/g, ' ')
     .replace(/&amp;/g, '&')
@@ -20,6 +22,12 @@ const stripHtml = (html = '') =>
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
     .replace(/\s+/g, ' ')
+    .replace(/\u00AD/g, '')   // soft hyphen
+    .replace(/&shy;/gi, '')   // HTML entity form of soft hyphen
+    .replace(/\u200B/g, '')   // zero-width space
+    .replace(/\u200C/g, '')   // zero-width non-joiner
+    .replace(/\u200D/g, '')   // zero-width joiner
+    .replace(/\uFEFF/g, '') // BOM
     .trim();
 
 const loadLS = (key) => {
@@ -246,7 +254,7 @@ https://chat.whatsapp.com/FGCScEHL0m44SjJTdSTU
         </div>
       </div>
 
-      <article className="max-w-md mx-auto px-4 pt-4 space-y-4 overflow-hidden">
+       <article className="w-full max-w-3xl mx-auto px-4 sm:px-6 pt-4 space-y-4">
         {/* Title & Metadata */}
         <div>
           <h1 className="text-xl font-bold text-slate-900 leading-snug">{post.title}</h1>
@@ -256,11 +264,22 @@ https://chat.whatsapp.com/FGCScEHL0m44SjJTdSTU
         </div>
 
         {/* Hero Image */}
+
         {post.image?.url && (
+          <div className="rounded-2xl overflow-hidden shadow-xs w-full bg-slate-50">
+            <img
+              src={post.image.url}
+              alt={post.title}
+              className="w-full h-auto  object-cover mx-auto"
+            />
+          </div>
+        )}
+
+        {/* {post.image?.url && (
           <div className="rounded-2xl overflow-hidden shadow-xs h-56 w-full">
             <img src={post.image.url} alt={post.title} className="w-full h-full object-cover" />
           </div>
-        )}
+        )} */}
 
         {/* Author / Publisher Bar */}
         <div className="flex items-center justify-between py-2 border-b border-slate-100">
@@ -292,9 +311,30 @@ https://chat.whatsapp.com/FGCScEHL0m44SjJTdSTU
 
         {/* Article Body */}
         <div
-          className="prose prose-slate text-sm leading-relaxed text-slate-600 pt-2 prose-headings:font-bold prose-headings:text-slate-900 prose-a:text-blue-600 prose-img:rounded-xl max-w-full min-w-0 wrap-break-word overflow-wrap-anywhere"
-          dangerouslySetInnerHTML={{ __html: post.content }}
-        />
+  className="
+    prose prose-slate
+    max-w-none
+    w-full
+    min-w-0
+    text-sm
+    text-justify
+    leading-relaxed
+    text-slate-600
+    pt-2
+    break-words
+    prose-headings:font-bold
+    prose-headings:text-slate-900
+    prose-p:leading-relaxed
+    prose-p:text-slate-600
+    prose-a:text-blue-600
+    prose-a:break-all
+    prose-img:max-w-full
+    prose-img:h-auto
+    prose-img:rounded-xl
+  "
+  dangerouslySetInnerHTML={{ __html: stripHtml(post.content) }}
+    
+/>
       </article>
 
       {/* Comments Section Container */}
