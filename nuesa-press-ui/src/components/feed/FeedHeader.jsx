@@ -265,7 +265,7 @@ const FeedHeader = ({
               </span>
             </div>
 
-            <div className="hidden xs:block">
+            <div className="block">
 
               <div className="flex items-baseline gap-1">
 
@@ -277,7 +277,7 @@ const FeedHeader = ({
                     text-[var(--nuesa-ink)]
                   "
                 >
-                  NUESA
+                 NUESA
                 </span>
 
                 <span
@@ -293,7 +293,7 @@ const FeedHeader = ({
 
               </div>
 
-              <p
+              {/* <p
                 className="
                   text-[9px]
                   uppercase
@@ -303,7 +303,7 @@ const FeedHeader = ({
                 "
               >
                 Faculty News
-              </p>
+              </p> */}
 
             </div>
 
@@ -485,7 +485,7 @@ const FeedHeader = ({
 
       <div className="sm:hidden px-4 pt-3">
 
-        <div className="relative">
+        <form onSubmit={(e) => e.preventDefault()} className="relative">
 
           <Search
             size={16}
@@ -499,13 +499,14 @@ const FeedHeader = ({
           />
 
           <input
-            type="text"
-            value={searchQuery}
-            placeholder="Search stories..."
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setActiveMenu('feed');
-            }}
+             type="text"
+              value={searchQuery}
+              placeholder="Search stories..."
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setActiveMenu('feed');
+              }}
+
             className="
               w-full
               bg-white
@@ -523,7 +524,7 @@ const FeedHeader = ({
             "
           />
 
-        </div>
+        </form>
 
       </div>
     </>

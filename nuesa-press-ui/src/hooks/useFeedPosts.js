@@ -7,6 +7,8 @@ import {
 import { useAuth0 } from "@auth0/auth0-react";
 import { getTokenWithFallback } from "../utils/authHelpers";
 
+import { formatRelTime as relTime } from '../hooks/useRelativeTime';
+
 const API_BASE_URL =
   import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 
@@ -41,18 +43,18 @@ const saveLS = (key, val) => {
   localStorage.setItem(key, JSON.stringify(val));
 };
 
-const relTime = (date) => {
-  const h = Math.floor((Date.now() - new Date(date)) / 3600000);
+// const relTime = (date) => {
+//   const h = Math.floor((Date.now() - new Date(date)) / 3600000);
 
-  if (h < 1) return "Just now";
-  if (h < 24) return `${h}h ago`;
+//   if (h < 1) return "Just now";
+//   if (h < 24) return `${h}h ago`;
 
-  const d = Math.floor(h / 24);
+//   const d = Math.floor(h / 24);
 
-  if (d < 7) return `${d}d ago`;
+//   if (d < 7) return `${d}d ago`;
 
-  return new Date(date).toLocaleDateString();
-};
+//   return new Date(date).toLocaleDateString();
+// };
 
 // ==========================================
 // SHARE POST

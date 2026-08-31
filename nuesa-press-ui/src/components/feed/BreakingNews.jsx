@@ -47,7 +47,7 @@ const BreakingNews = ({ topPost, onExpand, relTime }) => {
       onClick={() => onExpand(topPost)}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ y: -3 }}
       className="group relative h-[430px] sm:h-[500px] lg:h-[560px] rounded-[28px] overflow-hidden cursor-pointer bg-slate-900 shadow-[var(--nuesa-shadow-lg)]"
     >

@@ -179,8 +179,8 @@ const Home = ({ backendUser }) => {
                 className="mt-4 sm:mt-6 lg:mt-8 mb-10"
               >
 
-                <div className="flex items-end justify-between mb-4">
-                  <div>
+                {/* <div className="flex items-end justify-between mb-4"> */}
+                  {/* <div>
                     <p className="text-[10px] sm:text-xs font-black uppercase tracking-[0.18em] text-blue-600">
                       Breaking News
                     </p>
@@ -195,20 +195,21 @@ const Home = ({ backendUser }) => {
                     className="text-xs font-bold text-blue-600 hover:text-blue-800 transition"
                   >
                     View more
-                  </button>
-                </div>
+                  </button> */}
+                {/* </div> */}
+
+                
+                <FeedCategories
+                  categories={categories}
+                  activeCategory={activeCategory}
+                  setActiveCategory={setActiveCategory}
+                />
 
                 <FeedHero
                   heroPost={heroPost}
                   featuredPosts={featuredPosts}
                   onExpand={handleOpenPost}
                   relTime={relTime}
-                />
-
-                <FeedCategories
-                  categories={categories}
-                  activeCategory={activeCategory}
-                  setActiveCategory={setActiveCategory}
                 />
 
               </motion.section>

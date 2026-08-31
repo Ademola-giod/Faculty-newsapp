@@ -68,3 +68,39 @@ export const removeSocketListeners = () => {
   socket.off(SOCKET_EVENTS.DASHBOARD_UPDATE);
 
 };
+
+
+
+
+// POST-SCOPED LISTENERS — for a single post's detail page
+export const initializePostSocketListeners = ({
+  postId,
+  setLikeCount,
+  setPost,
+  onNewComment
+}) => {
+
+  socket.on(SOCKET_EVENTS.POST_LIKED, (data) => {
+    if (data.postId !== postId) return;
+    setLikeCount(data.likes);
+  });
+
+  socket.on(SOCKET_EVENTS.POST_VIEWED, (data) => {
+    if (data.postId !== postId) return;
+    setPost((prev) =>
+      prev ? { ...prev, metrics: { ...prev.metrics, views: data.views } } : prev
+    );
+  });
+
+  socket.on(SOCKET_EVENTS.NEW_COMMENT, (data) => {
+    if (data.postId !== postId) return;
+    onNewComment?.(data.comment);
+  });
+
+};
+
+export const removePostSocketListeners = () => {
+  socket.off(SOCKET_EVENTS.POST_LIKED);
+  socket.off(SOCKET_EVENTS.POST_VIEWED);
+  socket.off(SOCKET_EVENTS.NEW_COMMENT);
+};

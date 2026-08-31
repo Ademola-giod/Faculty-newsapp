@@ -4,6 +4,12 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import { getTokenWithFallback } from '../utils/authHelpers';
 import { ArrowLeft, Heart, Bookmark, Share2, CheckCircle2 } from 'lucide-react';
+import {
+  initializePostSocketListeners,
+  removePostSocketListeners
+} from '../sockets/socketListeners';
+
+import {useRelativeTime} from '../hooks/useRelativeTime';
 
 import CommentsSection from '../components/feed/CommentsSection';
 
@@ -52,6 +58,8 @@ const PostPage = () => {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [dbUserId, setDbUserId] = useState(null);
+
+  const postedAgo = useRelativeTime(post?.createdAt);
 
   useEffect(() => {
     if (!user) return;
@@ -245,8 +253,9 @@ https://chat.whatsapp.com/FGCScEHL0m44SjJTdSTU
             <ArrowLeft size={16} className="text-slate-700" />
           </button>
           <span className="font-bold text-slate-800 text-sm">{post.category || 'Global'}</span>
+
           <button
-            onClick={sharePost}
+            onClick={() => sharePost(post)}
             className="p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition"
           >
             <Share2 size={16} className="text-slate-700" />
@@ -259,7 +268,7 @@ https://chat.whatsapp.com/FGCScEHL0m44SjJTdSTU
         <div>
           <h1 className="text-xl font-bold text-slate-900 leading-snug">{post.title}</h1>
           <p className="text-xs text-slate-400 mt-2">
-            Posted {new Date(post.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            Posted {postedAgo}
           </p>
         </div>
 
