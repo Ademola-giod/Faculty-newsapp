@@ -61,3 +61,27 @@ export const syncUser = async (req, res) => {
       });
   }
 };
+
+// update user name 
+
+export const updateUserName = async (req, res) => {
+  try {
+    const { fullName } = req.body;
+
+    if (!fullName || !fullName.trim()) {
+      return res.status(400).json({ message: 'Name is required' });
+    }
+
+    req.user.fullName = fullName.trim();
+    req.user.nameSetByUser = true;
+    await req.user.save();
+
+    res.json({
+      id: req.user._id,
+      fullName: req.user.fullName,
+      nameSetByUser: req.user.nameSetByUser
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

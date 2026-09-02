@@ -10,8 +10,13 @@ router.get('/me', checkJwt, attachUserInfo, (req, res) => {
     fullName: req.user.fullName,
     avatar: req.user.avatar,
     role: req.user.role,
-    isActiveStaff: req.user.isActiveStaff
+    isActiveStaff: req.user.isActiveStaff,
+    nameSetByUser: req.user.nameSetByUser
   });
 });
+
+
+
+
 
 export default router;

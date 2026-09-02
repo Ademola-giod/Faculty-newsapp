@@ -257,7 +257,7 @@ const FeedHeader = ({
                 items-center
                 justify-center
                 shadow-lg
-                shadow-blue-500/20
+                shadow-blue-800/20
               "
             >
               <span className="font-black text-lg">

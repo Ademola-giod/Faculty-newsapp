@@ -5,6 +5,7 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   fullName: { type: String, required: true },
   avatar: { type: String },
+  nameSetByUser: { type: Boolean, default: false }, // true if user has set their own display name
   // Roles: SUPER_ADMIN (EiC), ADMIN (Staff), STUDENT (.ui.edu.ng), GUEST (Others)
   role: { 
     type: String, 

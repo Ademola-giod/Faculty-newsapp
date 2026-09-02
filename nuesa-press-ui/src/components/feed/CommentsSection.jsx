@@ -58,7 +58,7 @@ const CommentsSection = ({
         }
       });
 
-      console.log('auth0 token recieved for comment submission:', token);
+      console.log('auth0 token recieved for comment submission:');
 
       console.log('sending comment to backend:');
 
@@ -170,7 +170,7 @@ const CommentsSection = ({
                   src={
                     comment.user?.picture ||
                     `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                      comment.user?.name || 'User'
+                      comment.authorName || 'User'
                     )}`
                   }
                   alt=""
@@ -179,7 +179,7 @@ const CommentsSection = ({
 
                 <div>
                   <h4 className="font-bold text-sm text-slate-900">
-                    {comment.user?.name || 'Anonymous'}
+                    {comment.authorName || 'Anonymous'}
                   </h4>
 
                   <p className="text-xs text-slate-400">

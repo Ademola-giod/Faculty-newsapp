@@ -72,9 +72,9 @@ const Home = ({ backendUser }) => {
     navigate(`/post/${post._id}`);
   };
 
-  /* ============================
+  /* ==
      LOADING
-     ============================ */
+     == */
 
   if (loading) {
     return (
@@ -102,9 +102,9 @@ const Home = ({ backendUser }) => {
     );
   }
 
-  /* ============================
+  /* ==
      ERROR
-     ============================ */
+     == */
 
   if (error) {
     return (
@@ -136,9 +136,9 @@ const Home = ({ backendUser }) => {
   return (
     <div className="nuesa-page min-h-screen pb-32 text-slate-900">
 
-      {/* ============================
+      {/* ==
           HEADER
-          ============================ */}
+          == */}
 
       <FeedHeader
         isAdmin={isAdmin}
@@ -149,18 +149,18 @@ const Home = ({ backendUser }) => {
         logout={logout}
       />
 
-      {/* ============================
+      {/* ==
           FEED
-          ============================ */}
+          == */}
 
       {activeMenu === 'feed' && (
         <>
 
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-            {/* ==========================
+            {/* 
                 HERO
-                ========================== */}
+               */}
 
             {showHero && (
               <motion.section
@@ -215,9 +215,9 @@ const Home = ({ backendUser }) => {
               </motion.section>
             )}
 
-            {/* ==========================
+            {/* 
                 NEWSROOM HEADER
-                ========================== */}
+               */}
 
             <motion.section
               initial={{
@@ -257,9 +257,9 @@ const Home = ({ backendUser }) => {
 
             </motion.section>
 
-            {/* ==========================
+            {/* 
                 POSTS
-                ========================== */}
+               */}
 
             {gridPosts.length > 0 ? (
               <motion.div
@@ -316,9 +316,9 @@ const Home = ({ backendUser }) => {
               />
             )}
 
-            {/* ==========================
+            {/* 
                 LOAD MORE
-                ========================== */}
+               */}
 
             {hasMore && gridPosts.length > 0 && (
               <div className="flex justify-center py-10">
@@ -358,9 +358,9 @@ const Home = ({ backendUser }) => {
         </>
       )}
 
-      {/* ============================
+      {/* ==
           EXPLORE
-          ============================ */}
+          == */}
 
       {activeMenu === 'explore' && (
         <ExploreSection
@@ -373,9 +373,9 @@ const Home = ({ backendUser }) => {
         />
       )}
 
-      {/* ============================
+      {/* ==
           SAVED
-          ============================ */}
+          == */}
 
       {activeMenu === 'saved' && (
         <SavedPostsSection
