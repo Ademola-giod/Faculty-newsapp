@@ -2,7 +2,7 @@ export const config = {
   matcher: '/post/:path*',
 };
 
-const BOT_UA_REGEX = /whatsapp|facebookexternalhit|twitterbot|linkedinbot|telegrambot|slackbot|discordbot/i;
+const BOT_UA_REGEX = /whatsapp|facebookexternalhit|twitterbot|linkedinbot|telegrambot|slackbot|discordbot|googlebot|bingbot/i;
 
 export default async function middleware(request) {
   const userAgent = request.headers.get('user-agent') || '';
