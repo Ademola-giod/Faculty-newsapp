@@ -9,7 +9,9 @@ import {
   toggleLike,
   incrementView,
   addComment,
-  getComments
+  getComments,
+  updateComment,
+  toggleCommentLike,
 } from '../controllers/postController.js';
 
 import {
@@ -44,6 +46,8 @@ router.patch('/:id/view', incrementView);
 router.get('/:id/comments', getComments);
 
 
+
+
 // ───────────── AUTH REQUIRED ROUTES ─────────────
 
 // Like post
@@ -62,6 +66,12 @@ router.post(
   addComment
 );
 
+
+// Edit a comment (owner only — enforced in the controller)
+router.patch('/:id/comments/:commentId', checkJwt, attachUserInfo, updateComment);
+
+// Like/unlike a comment
+router.patch('/:id/comments/:commentId/like', checkJwt, attachUserInfo, toggleCommentLike); 
 
 // ───────────── ADMIN ROUTES ─────────────
 

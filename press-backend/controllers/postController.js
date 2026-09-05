@@ -30,7 +30,7 @@ export const createPost = async (req, res) => {
       category,
       keywords: keywordsArray,
       authorId: req.user._id,
-      authorName: req.user.name || req.user.email,
+      authorName: req.user.fullName || req.user.name || req.user.email,
       image: {
         url: imageUrl,
         public_id: imageId
@@ -470,11 +470,11 @@ export const addComment = async (req, res) => {
       postId: req.params.id,
       userId: req.user._id,
       content,
-      authorName:
+      fullName:
         req.user.fullName ||
         req.user.name ||
         req.user.email,
-      authorAvatar: req.user.avatar || ''
+      avatar: req.user.avatar || ''
     });
 
     req.io.emit(SOCKET_EVENTS.NEW_COMMENT, {
@@ -518,4 +518,65 @@ export const getComments = async (req, res) => {
 
   }
 
+};
+
+
+// EDIT COMMENT
+export const updateComment = async (req, res) => {
+  try {
+    const { content } = req.body;
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({ message: 'Comment cannot be empty' });
+    }
+
+    const comment = await Comment.findById(req.params.commentId);
+
+    if (!comment) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+
+    if (comment.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'You can only edit your own comment' });
+    }
+
+    comment.content = content.trim();
+    comment.edited = true;
+    await comment.save();
+
+    res.json(comment);
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// TOGGLE COMMENT LIKE
+export const toggleCommentLike = async (req, res) => {
+  try {
+    const comment = await Comment.findById(req.params.commentId);
+
+    if (!comment) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+
+    const userId = req.user._id;
+    const alreadyLiked = comment.likes.includes(userId);
+
+    if (alreadyLiked) {
+      comment.likes.pull(userId);
+    } else {
+      comment.likes.push(userId);
+    }
+
+    await comment.save();
+
+    res.json({
+      liked: !alreadyLiked,
+      likes: comment.likes.length
+    });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };

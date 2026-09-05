@@ -25,8 +25,8 @@ const SetNameModal = ({ open, onSubmit, submitting }) => {
           <h2 className="text-white font-black text-lg">
             What should we call you?
           </h2>
-          <p className="text-blue-100 text-xs mt-1">
-            This is the name readers will see on your posts and comments.
+          <p className="text-blue-100 text-sm mt-1">
+            This is the name readers will see on your posts or comments.
           </p>
         </div>
 
@@ -67,7 +67,7 @@ const SetNameModal = ({ open, onSubmit, submitting }) => {
             disabled={submitting}
             className="
               w-full
-              bg-blue-600
+              bg-blue-800
               text-white
               font-bold
               text-sm

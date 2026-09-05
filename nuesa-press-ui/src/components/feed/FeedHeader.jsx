@@ -104,6 +104,8 @@ import {
   X,
 } from 'lucide-react';
 
+import { Link } from 'react-router-dom'
+
 import { motion } from 'framer-motion';
 
 const FeedHeader = ({
@@ -172,8 +174,8 @@ const FeedHeader = ({
               Admin session active
             </span>
 
-            <a
-              href="/admin"
+            <Link
+              to="/admin"
               className="
                 px-3
                 py-1
@@ -184,7 +186,7 @@ const FeedHeader = ({
               "
             >
               Dashboard
-            </a>
+            </Link>
 
           </div>
         </div>

@@ -230,7 +230,16 @@ const AdminDashboard = ({ backendUser }) => {
 
   const handlePublish = async () => {
 
-    setIsPublishing(true);n 
+    if (!formData.title.trim()) {
+      toast.error('Please add a title before publishing.');
+      return;
+    }
+
+    if(!formData.category) {
+      toast.error('Please select a category before publishing.');
+      return;
+    }
+    setIsPublishing(true);
 
   const data = new FormData();
 
@@ -274,7 +283,7 @@ const AdminDashboard = ({ backendUser }) => {
       const updatedPost = res.data?.post;
 
       if (updatedPost) {
-        // Replace the OLD post with the UPDATED post
+        // Replace the OLD post with the UPDATED post    
         setPosts(prevPosts =>
           prevPosts.map(post =>
             post._id === updatedPost._id
@@ -327,17 +336,27 @@ const AdminDashboard = ({ backendUser }) => {
       search: searchTerm
     });
 
-  } catch (err) {
-    console.error(
-      'Post save/update error:',
-      err.response?.data || err
-    );
+ } catch (err) {
+  console.error('Post save/update error:', err.response?.data || err);
 
-    toast.error(
-      err.response?.data?.message ||
-      'Something went wrong while saving the article.'
-    );
+  const backendMessage = err.response?.data?.message || '';
+
+  let friendlyMessage = 'Something went wrong while publishing. Please try again.';
+
+  if (backendMessage.includes('title')) {
+    friendlyMessage = 'Please add a title before publishing.';
+  } else if (backendMessage.includes('category')) {
+    friendlyMessage = 'Please select a category before publishing.';
+  } else if (err.response?.status === 401 || err.response?.status === 403) {
+    friendlyMessage = 'Your session expired. Please log in again.';
+  } else if (!err.response) {
+    friendlyMessage = 'Network error — check your connection and try again.';
   }
+
+  toast.error(friendlyMessage);
+} finally {
+  setIsPublishing(false);
+}
   };
 
   // const handlePublish = async () => {
@@ -428,7 +447,7 @@ const AdminDashboard = ({ backendUser }) => {
       );
 
       toast.error(
-        err.response?.data?.message ||
+
         'Failed to delete article.'
       );
     }
@@ -485,6 +504,13 @@ const AdminDashboard = ({ backendUser }) => {
 
     localStorage.setItem('nuesa_article_draft', JSON.stringify(draftPayload));
   }, [formData, draftImageDataUrl, selectedFile]);
+
+
+useEffect(() => {
+  if (categories.length > 0 && !formData.category) {
+    setFormData((prev) => ({ ...prev, category: categories[0] }));
+  }
+}, [categories]);
 
   // Safely compute image preview URL once state mounts
  useEffect(() => {

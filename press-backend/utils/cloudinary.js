@@ -15,7 +15,7 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'nuesa_press_news', // Folder name in Cloudinary
-    allowed_formats: ['jpg', 'png', 'jpeg'],
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp', 'gif', 'bmp', 'tiff', 'avif'], // Allowed image formats],
     transformation: [{ width: 800, height: 500, crop: 'limit' }] // Auto-resize for mobile students
   },
 });

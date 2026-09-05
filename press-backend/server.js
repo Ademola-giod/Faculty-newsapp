@@ -80,7 +80,7 @@ app.use((req, res, next) => {
 
 
 // 5. Basic Route for testing
-app.get('/', (req, res) => res.send('Faculty Press API is Live 🚀'));
+app.get('/', (req, res) => res.send('Faculty Press API is Live '));
 
 
 
@@ -98,4 +98,13 @@ app.use('/api/categories', categoryRoutes);
 const PORT = process.env.PORT || 5000;
 httpServer.listen(PORT, () => {
   console.log(`📡 Server heartbeat at http://localhost:${PORT}`);
+});
+
+
+// error handler - must be last, after all routes
+app.use((err, req, res, next) => {
+  console.error('UNHANDLED ERROR:', err);
+  res.status(500).json({
+    message: err.message || 'Internal server error',
+  });
 });

@@ -114,6 +114,8 @@ const PostPage = () => {
     fetchPost();
   }, [id, dbUserId]);
 
+  
+
   const toggleLike = async (e) => {
     e?.stopPropagation();
     if (!post) return;
@@ -270,7 +272,20 @@ https://chat.whatsapp.com/FGCScEHL0m44SjJTdSTU
           <p className="text-xs text-slate-400 mt-2">
             Posted {postedAgo}
           </p>
+           
+          {Array.isArray(post.keywords) && post.keywords.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {post.keywords.map((kw, i) => (
+                <span
+                  key={i}
+                  className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full"
+                >
+             #{kw}
+        </span>
+      ))}
         </div>
+          )}
+      </div>
 
         {/* Hero Image */}
 
@@ -352,6 +367,7 @@ https://chat.whatsapp.com/FGCScEHL0m44SjJTdSTU
           expandedPost={post}
           user={user}
           getAccessTokenSilently={getAccessTokenSilently}
+          dbUserId={dbUserId}
         />
       </div>
     </div>

@@ -1,29 +1,21 @@
+
+import React, { useMemo } from 'react';
 import { X, Image as ImageIcon, Trash2 } from 'lucide-react';
-import ReactQuill from 'react-quill-new';
+import ReactQuill, { Quill } from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 
-const quillModules = {
-  toolbar: [
-    [{ header: [1, 2, 3, false] }],
-    ['bold', 'italic', 'underline', 'strike'],
-    [{ color: [] }, { background: [] }],
-    [{ list: 'ordered' }, { list: 'bullet' }],
-    [{ indent: '-1' }, { indent: '+1' }],
-    [{ align: [] }],
-    ['blockquote', 'code-block'],
-    ['link', 'image', 'video'],
-    ['clean'],
-  ],
-  clipboard: {
-    matchVisual: false, // strips messy inline styles pasted content brings in
-  },
-};
-
-const quillFormats = [
-  'header', 'bold', 'italic', 'underline', 'strike',
-  'color', 'background', 'list', 'bullet', 'indent',
-  'align', 'blockquote', 'code-block', 'link', 'image', 'video',
-];
+// Custom Clipboard Module
+const Clipboard = Quill.import('modules/clipboard');
+class PlainClipboard extends Clipboard {
+  onPaste(range, context) {
+    try {
+      super.onPaste(range, context);
+    } catch (err) {
+      console.error('Quill paste error caught:', err);
+    }
+  }
+}
+Quill.register('modules/clipboard', PlainClipboard, true);
 
 const ArticleDrawer = ({
   isOpen,
@@ -38,6 +30,27 @@ const ArticleDrawer = ({
   onClearDraft,
   categories,
 }) => {
+  // Memoize modules inside the component to prevent toolbar tearing on paste/re-render
+  const quillModules = useMemo(
+    () => ({
+      toolbar: [
+        [{ header: [1, 2, 3, false] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        [{ color: [] }, { background: [] }],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        [{ indent: '-1' }, { indent: '+1' }],
+        [{ align: [] }],
+        ['blockquote', 'code-block'],
+        ['link', 'image', 'video'],
+        ['clean'],
+      ],
+      clipboard: {
+        matchVisual: false,
+      },
+    }),
+    []
+  );
+
   if (!isOpen) return null;
 
   const handleFileSelect = (e) => {
@@ -52,7 +65,12 @@ const ArticleDrawer = ({
     }
 
     if (window.confirm('Clear all text and start over?')) {
-      const emptyForm = { title: '', category: '', keywords: '', content: '' };
+      const emptyForm = {
+        title: '',
+        category: '',
+        keywords: '',
+        content: '',
+      };
       setFormData(emptyForm);
       localStorage.removeItem('nuesa_article_draft');
     }
@@ -62,7 +80,6 @@ const ArticleDrawer = ({
     <div className="fixed inset-0 z-[100]">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
       <section className="absolute right-0 top-0 h-full w-full max-w-2xl bg-white shadow-2xl flex flex-col animate-in slide-in-from-right duration-500">
-
         <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
           <div>
             <h2 className="text-2xl font-black text-slate-900 tracking-tight">
@@ -80,7 +97,7 @@ const ArticleDrawer = ({
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Article Title</label>
             <input
               type="text"
-              className="w-full text-2xl font-bold border-none focus:ring-0 p-0 placeholder:text-slate-200"
+              className="w-full text-2xl font-bold border-none focus:ring-0 p-0 placeholder:text-black-200 outline-none required"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               placeholder="e.g. NUESA Tech Week"
@@ -93,6 +110,9 @@ const ArticleDrawer = ({
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
             >
+              <option value="" disabled>
+                Select Category
+              </option>
               {categories.map((category) => (
                 <option key={category} value={category}>
                   {category}
@@ -101,7 +121,7 @@ const ArticleDrawer = ({
             </select>
 
             <input
-              className="bg-slate-50 border-none rounded-xl p-3 font-semibold text-sm"
+              className="bg-slate-50 border-none rounded-xl p-3 font-semibold text-sm required"
               placeholder="Keywords"
               value={formData.keywords}
               onChange={(e) => setFormData({ ...formData, keywords: e.target.value })}
@@ -110,12 +130,12 @@ const ArticleDrawer = ({
 
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Feature Image</label>
-            <label className="border-2 border-dashed border-slate-200 rounded-[2rem] p-10 block text-center cursor-pointer hover:border-blue-400 bg-slate-50/50 transition-all">
+            <label className="border-2 border-dashed border-slate-200 rounded-[2rem] block text-center cursor-pointer hover:border-blue-400 bg-slate-50/50 transition-all">
               <input type="file" className="hidden" onChange={handleFileSelect} accept="image/*" />
               {previewUrl ? (
-                <img src={previewUrl} className="h-48 w-full object-cover rounded-2xl shadow-md" alt="Preview" />
+                <img src={previewUrl} className="h-48 w-full object-cover rounded" alt="Preview" />
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3 p-6">
                   <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mx-auto text-blue-600">
                     <ImageIcon size={24} />
                   </div>
@@ -127,14 +147,14 @@ const ArticleDrawer = ({
 
           <div className="space-y-2 pb-12">
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Article Story</label>
-            <div className="rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-sm">
+            
+            {/* Added CSS scoped styling container */}
+            <div className="rounded-2xl border border-slate-200 overflow-hidden bg-white shadow-sm [&_.ql-toolbar]:border-none [&_.ql-toolbar]:border-b [&_.ql-toolbar]:border-slate-100 [&_.ql-container]:border-none [&_.ql-container]:h-64">
               <ReactQuill
                 theme="snow"
                 value={formData.content}
                 onChange={(val) => setFormData({ ...formData, content: val })}
                 modules={quillModules}
-                formats={quillFormats}
-                className="h-64"
               />
             </div>
           </div>
